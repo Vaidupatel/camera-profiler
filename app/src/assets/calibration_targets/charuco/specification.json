@@ -1,0 +1,19 @@
+{
+  "type": "charuco",
+  "squaresX": 9,
+  "squaresY": 6,
+  "squareSizeMm": 30,
+  "markerSizeMm": 22,
+  "dictionary": "DICT_5X5_1000",
+  "pageSizes": [
+    "A4",
+    "A3",
+    "Letter"
+  ],
+  "dpi": [
+    300,
+    600
+  ],
+  "marginMm": 10,
+  "notes": "Generate via cv2.aruco.CharucoBoard + cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_1000). markerSize must be < squareSize."
+}

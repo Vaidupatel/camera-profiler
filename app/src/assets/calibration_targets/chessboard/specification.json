@@ -1,0 +1,17 @@
+{
+  "type": "chessboard",
+  "squaresX": 9,
+  "squaresY": 6,
+  "squareSizeMm": 25,
+  "pageSizes": [
+    "A4",
+    "A3",
+    "Letter"
+  ],
+  "dpi": [
+    300,
+    600
+  ],
+  "marginMm": 10,
+  "notes": "Interior corner count = (squaresX-1) x (squaresY-1). Compatible with cv2.findChessboardCorners."
+}

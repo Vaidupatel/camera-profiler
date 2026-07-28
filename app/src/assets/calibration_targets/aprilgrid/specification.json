@@ -1,0 +1,19 @@
+{
+  "type": "aprilgrid",
+  "tagFamily": "tag36h11",
+  "tagsX": 6,
+  "tagsY": 6,
+  "tagSizeMm": 30,
+  "tagSpacingRatio": 0.3,
+  "pageSizes": [
+    "A4",
+    "A3",
+    "Letter"
+  ],
+  "dpi": [
+    300,
+    600
+  ],
+  "marginMm": 10,
+  "notes": "tagSpacingRatio = spacing / tagSize. Follows kalibr aprilgrid.yaml conventions."
+}

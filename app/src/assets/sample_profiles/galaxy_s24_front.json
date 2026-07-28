@@ -1,0 +1,16 @@
+{
+  "device": "Samsung Galaxy S24",
+  "camera": "front",
+  "resolution": {
+    "width": 4032,
+    "height": 3024
+  },
+  "focalLengthPx": 3100,
+  "sensorSizeMm": {
+    "width": 5.76,
+    "height": 4.29
+  },
+  "calibrated": false,
+  "createdAt": "2026-07-28T18:46:11.930Z",
+  "schemaVersion": "1.0"
+}

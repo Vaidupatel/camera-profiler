@@ -1,0 +1,19 @@
+{
+  "type": "circle_grid",
+  "kind": "symmetric",
+  "pointsPerRow": 4,
+  "pointsPerColumn": 11,
+  "circleSpacingMm": 20,
+  "circleRadiusMm": 4,
+  "pageSizes": [
+    "A4",
+    "A3",
+    "Letter"
+  ],
+  "dpi": [
+    300,
+    600
+  ],
+  "marginMm": 10,
+  "notes": "For an asymmetric grid, use cv2.findCirclesGrid with CALIB_CB_ASYMMETRIC_GRID."
+}
