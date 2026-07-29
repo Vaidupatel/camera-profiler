@@ -1,12 +1,31 @@
-# Add project specific R8 rules here.
-# AGP will combine all keep rule files in src/main/keepRules to pass to R8
-#
-# For more details, see
-#   https://d.android.com/r/tools/r8/keep-rules
+# Camera Profiler R8 / ProGuard Rules
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Hilt
+-keepclassmembers class * {
+    @dagger.hilt.android.lifecycle.HiltViewModel <init>(...);
+}
+
+# Kotlin Serialization
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.openprofiler.**$$serializer { *; }
+-keepclassmembers class com.openprofiler.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.openprofiler.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# JNI
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# CameraX
+-keep class androidx.camera.** { *; }

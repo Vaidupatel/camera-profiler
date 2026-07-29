@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Disable unused resources check for Phase 0 assets -->
+    <issue id="UnusedResources" severity="warning" />
+    <!-- Allow missing translations during development -->
+    <issue id="MissingTranslation" severity="warning" />
+    <!-- Enforce content descriptions for accessibility -->
+    <issue id="ContentDescription" severity="error" />
+</lint>

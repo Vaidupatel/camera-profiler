@@ -1,0 +1,2522 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/
+  src/
+    androidTest/
+      java/
+        com/
+          openprofiler/
+            MainActivityTest.kt
+    assets/
+      calibration_targets/
+        aprilgrid/
+          aprilgrid.png
+          specification.json
+        charuco/
+          charuco_board.png
+          specification.json
+        chessboard/
+          chessboard_9x6.png
+          specification.json
+        circle_grid/
+          circle_grid_4x11.png
+          specification.json
+      overlays/
+        bad.svg
+        coverage.svg
+        good.svg
+        move_down.svg
+        move_left.svg
+        move_right.svg
+        move_up.svg
+        rotate.svg
+      sample_profiles/
+        galaxy_s24_front.json
+        iphone16_front.json
+        pixel9_front.json
+    main/
+      cpp/
+        common/
+          common.h
+        jni/
+          native_bridge.cpp
+        CMakeLists.txt
+      java/
+        com/
+          openprofiler/
+            calibration/
+              CalibrationRepositoryImpl.kt
+            camera/
+              CameraRepositoryImpl.kt
+            common/
+              util/
+                DispatcherProvider.kt
+                Logger.kt
+            coverage/
+              CoverageEngine.kt
+            di/
+              AppModule.kt
+              CameraModule.kt
+              NativeModule.kt
+            domain/
+              model/
+                CalibrationResult.kt
+                CameraProfile.kt
+                CoverageData.kt
+                ProfileError.kt
+                QualityScore.kt
+              repository/
+                CalibrationRepository.kt
+                CameraRepository.kt
+                ExportRepository.kt
+                MetadataRepository.kt
+                ValidationRepository.kt
+              usecase/
+                CollectMetadataUseCase.kt
+                ExportProfileUseCase.kt
+                GenerateProfileUseCase.kt
+                StartCalibrationUseCase.kt
+                ValidateCalibrationUseCase.kt
+            export/
+              ExportRepositoryImpl.kt
+            metadata/
+              MetadataRepositoryImpl.kt
+            native_bridge/
+              NativeBridge.kt
+            quality/
+              QualityEngine.kt
+            storage/
+              ProfileStorage.kt
+            ui/
+              components/
+                Placeholder.kt
+              navigation/
+                AppNavigation.kt
+                Route.kt
+              screens/
+                SplashScreen.kt
+              theme/
+                Color.kt
+                Theme.kt
+                Type.kt
+              viewmodel/
+                MainViewModel.kt
+            validation/
+              ValidationRepositoryImpl.kt
+            CameraProfilerApp.kt
+            MainActivity.kt
+      keepRules/
+        rules.keep
+      res/
+        drawable/
+          ic_launcher_background.xml
+          ic_launcher_foreground.xml
+        mipmap-anydpi-v26/
+          ic_launcher_round.xml
+          ic_launcher.xml
+        mipmap-hdpi/
+          ic_launcher_round.webp
+          ic_launcher.webp
+        mipmap-mdpi/
+          ic_launcher_round.webp
+          ic_launcher.webp
+        mipmap-xhdpi/
+          ic_launcher_round.webp
+          ic_launcher.webp
+        mipmap-xxhdpi/
+          ic_launcher_round.webp
+          ic_launcher.webp
+        mipmap-xxxhdpi/
+          ic_launcher_round.webp
+          ic_launcher.webp
+        values/
+          colors.xml
+          strings.xml
+          themes.xml
+        xml/
+          backup_rules.xml
+          data_extraction_rules.xml
+      AndroidManifest.xml
+    test/
+      java/
+        com/
+          openprofiler/
+            common/
+              util/
+                DispatcherProviderTest.kt
+            domain/
+              usecase/
+                GenerateProfileUseCaseTest.kt
+  .gitignore
+  build.gradle.kts
+  lint.xml
+gradle/
+  wrapper/
+    gradle-wrapper.jar
+    gradle-wrapper.properties
+  gradle-daemon-jvm.properties
+  libs.versions.toml
+.gitignore
+build.gradle.kts
+gradle.properties
+gradlew
+gradlew.bat
+settings.gradle.kts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/src/androidTest/java/com/openprofiler/MainActivityTest.kt">
+package com.openprofiler
+
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.junit.runner.RunWith
+
+/**
+ * Instrumented tests for [MainActivity].
+ * Phase 0: Placeholder verifying application context.
+ */
+@RunWith(AndroidJUnit4::class)
+class MainActivityTest {
+
+    @Test
+    fun applicationContextUsesCorrectPackage() {
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        assertTrue(appContext.packageName.startsWith("com.openprofiler"))
+    }
+}
+</file>
+
+<file path="app/src/main/cpp/common/common.h">
+#ifndef CAMERA_PROFILER_COMMON_H
+#define CAMERA_PROFILER_COMMON_H
+
+#define PROFILER_NATIVE_VERSION "1.0.0"
+
+#endif // CAMERA_PROFILER_COMMON_H
+</file>
+
+<file path="app/src/main/cpp/jni/native_bridge.cpp">
+#include <jni.h>
+#include <string>
+#include "common.h"
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_openprofiler_native_1bridge_NativeBridge_getNativeVersion(
+    JNIEnv *env,
+    jobject /* this */) {
+    return env->NewStringUTF(PROFILER_NATIVE_VERSION);
+}
+</file>
+
+<file path="app/src/main/cpp/CMakeLists.txt">
+cmake_minimum_required(VERSION 3.22.1)
+
+project("camera_profiler_native" LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# OpenCV will be configured here in a future phase
+# find_package(OpenCV REQUIRED)
+
+add_library(
+    camera_profiler_native
+    SHARED
+    jni/native_bridge.cpp
+)
+
+target_include_directories(
+    camera_profiler_native
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/common
+)
+
+find_library(log-lib log)
+
+target_link_libraries(
+    camera_profiler_native
+    ${log-lib}
+)
+</file>
+
+<file path="app/src/main/java/com/openprofiler/calibration/CalibrationRepositoryImpl.kt">
+package com.openprofiler.calibration
+
+import com.openprofiler.domain.repository.CalibrationRepository
+import javax.inject.Inject
+
+/**
+ * OpenCV-backed implementation of [CalibrationRepository].
+ * Phase 0: Empty placeholder.
+ */
+class CalibrationRepositoryImpl @Inject constructor() : CalibrationRepository
+</file>
+
+<file path="app/src/main/java/com/openprofiler/camera/CameraRepositoryImpl.kt">
+package com.openprofiler.camera
+
+import com.openprofiler.domain.repository.CameraRepository
+import javax.inject.Inject
+
+/**
+ * CameraX-backed implementation of [CameraRepository].
+ * Phase 0: Empty placeholder.
+ */
+class CameraRepositoryImpl @Inject constructor() : CameraRepository
+</file>
+
+<file path="app/src/main/java/com/openprofiler/common/util/DispatcherProvider.kt">
+package com.openprofiler.common.util
+
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+
+/**
+ * Abstraction over coroutine dispatchers for testability.
+ * Inject this instead of using Dispatchers directly.
+ */
+interface DispatcherProvider {
+    /** Main (UI) thread dispatcher. */
+    val main: CoroutineDispatcher
+
+    /** IO dispatcher for blocking operations. */
+    val io: CoroutineDispatcher
+
+    /** Default dispatcher for CPU-intensive work. */
+    val default: CoroutineDispatcher
+
+    /** Unconfined dispatcher. */
+    val unconfined: CoroutineDispatcher
+}
+
+/**
+ * Production implementation using standard Android dispatchers.
+ */
+class StandardDispatcherProvider : DispatcherProvider {
+    override val main: CoroutineDispatcher = Dispatchers.Main
+    override val io: CoroutineDispatcher = Dispatchers.IO
+    override val default: CoroutineDispatcher = Dispatchers.Default
+    override val unconfined: CoroutineDispatcher = Dispatchers.Unconfined
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/common/util/Logger.kt">
+package com.openprofiler.common.util
+
+import timber.log.Timber
+
+/**
+ * Structured logger wrapping Timber for categorized logging.
+ * Each module should use a specific tag for its log messages.
+ */
+object Logger {
+
+    /** Log a debug message with the given tag. */
+    fun d(tag: String, message: String) {
+        Timber.tag(tag).d(message)
+    }
+
+    /** Log an info message with the given tag. */
+    fun i(tag: String, message: String) {
+        Timber.tag(tag).i(message)
+    }
+
+    /** Log a warning message with the given tag. */
+    fun w(tag: String, message: String) {
+        Timber.tag(tag).w(message)
+    }
+
+    /** Log an error message with the given tag and optional throwable. */
+    fun e(tag: String, message: String, throwable: Throwable? = null) {
+        Timber.tag(tag).e(throwable, message)
+    }
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/coverage/CoverageEngine.kt">
+package com.openprofiler.coverage
+
+import javax.inject.Inject
+
+/**
+ * Engine for tracking calibration coverage across pose dimensions.
+ * Phase 0: Empty placeholder.
+ */
+class CoverageEngine @Inject constructor()
+</file>
+
+<file path="app/src/main/java/com/openprofiler/di/AppModule.kt">
+package com.openprofiler.di
+
+import com.openprofiler.common.util.DispatcherProvider
+import com.openprofiler.common.util.StandardDispatcherProvider
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+/**
+ * Application-scoped Hilt module providing core dependencies.
+ */
+@Module
+@InstallIn(SingletonComponent::class)
+object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideDispatcherProvider(): DispatcherProvider = StandardDispatcherProvider()
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/di/CameraModule.kt">
+package com.openprofiler.di
+
+import com.openprofiler.calibration.CalibrationRepositoryImpl
+import com.openprofiler.camera.CameraRepositoryImpl
+import com.openprofiler.domain.repository.CalibrationRepository
+import com.openprofiler.domain.repository.CameraRepository
+import com.openprofiler.domain.repository.ExportRepository
+import com.openprofiler.domain.repository.MetadataRepository
+import com.openprofiler.domain.repository.ValidationRepository
+import com.openprofiler.export.ExportRepositoryImpl
+import com.openprofiler.metadata.MetadataRepositoryImpl
+import com.openprofiler.validation.ValidationRepositoryImpl
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+/**
+ * Hilt module providing camera, metadata, and data layer bindings.
+ */
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class CameraModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindCameraRepository(impl: CameraRepositoryImpl): CameraRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMetadataRepository(impl: MetadataRepositoryImpl): MetadataRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCalibrationRepository(impl: CalibrationRepositoryImpl): CalibrationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindValidationRepository(impl: ValidationRepositoryImpl): ValidationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindExportRepository(impl: ExportRepositoryImpl): ExportRepository
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/di/NativeModule.kt">
+package com.openprofiler.di
+
+import com.openprofiler.native_bridge.NativeBridge
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+/**
+ * Hilt module providing native/JNI bindings.
+ */
+@Module
+@InstallIn(SingletonComponent::class)
+object NativeModule {
+
+    @Provides
+    @Singleton
+    fun provideNativeBridge(): NativeBridge = NativeBridge()
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/model/CalibrationResult.kt">
+package com.openprofiler.domain.model
+
+/**
+ * Result of a camera calibration operation.
+ * Phase 0: Placeholder.
+ *
+ * @property rms Root mean square reprojection error.
+ * @property cameraMatrix 3x3 camera intrinsic matrix (row-major).
+ * @property distortionCoefficients Distortion coefficients.
+ * @property imageCount Number of images used for calibration.
+ * @property success Whether the calibration was successful.
+ */
+data class CalibrationResult(
+    val rms: Double = 0.0,
+    val cameraMatrix: List<List<Double>> = emptyList(),
+    val distortionCoefficients: List<Double> = emptyList(),
+    val imageCount: Int = 0,
+    val success: Boolean = false,
+)
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/model/CameraProfile.kt">
+package com.openprofiler.domain.model
+
+import kotlinx.serialization.Serializable
+
+/**
+ * Top-level camera profile model.
+ * Phase 0: Minimal placeholder. Full schema will be implemented in Phase 10.
+ *
+ * @property schemaVersion The version of the profile schema.
+ * @property profileVersion The version of this profile.
+ * @property profileId Unique identifier for this profile.
+ * @property createdAt ISO-8601 UTC timestamp of profile creation.
+ */
+@Serializable
+data class CameraProfile(
+    val schemaVersion: Int = 1,
+    val profileVersion: Int = 1,
+    val profileId: String = "",
+    val createdAt: String = "",
+)
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/model/CoverageData.kt">
+package com.openprofiler.domain.model
+
+/**
+ * Calibration coverage tracking data.
+ * Phase 0: Placeholder.
+ *
+ * @property overallPercentage Total coverage percentage in [0.0, 100.0].
+ * @property center Coverage at image center.
+ * @property top Coverage at top region.
+ * @property bottom Coverage at bottom region.
+ * @property left Coverage at left region.
+ * @property right Coverage at right region.
+ */
+data class CoverageData(
+    val overallPercentage: Double = 0.0,
+    val center: Double = 0.0,
+    val top: Double = 0.0,
+    val bottom: Double = 0.0,
+    val left: Double = 0.0,
+    val right: Double = 0.0,
+)
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/model/ProfileError.kt">
+package com.openprofiler.domain.model
+
+/**
+ * Sealed class representing errors that can occur during profiling.
+ * Every error contains a code, message, and recovery suggestion per ARCHITECTURE.md.
+ *
+ * @property code Unique error code.
+ * @property message Human-readable error description.
+ * @property recovery Suggested recovery action for the user.
+ */
+sealed class ProfileError(
+    open val code: String,
+    open val message: String,
+    open val recovery: String,
+) {
+    /** Camera-related errors. */
+    data class CameraError(
+        override val code: String,
+        override val message: String,
+        override val recovery: String,
+        val cause: Throwable? = null,
+    ) : ProfileError(code, message, recovery)
+
+    /** Calibration-related errors. */
+    data class CalibrationError(
+        override val code: String,
+        override val message: String,
+        override val recovery: String,
+    ) : ProfileError(code, message, recovery)
+
+    /** Validation-related errors. */
+    data class ValidationError(
+        override val code: String,
+        override val message: String,
+        override val recovery: String,
+    ) : ProfileError(code, message, recovery)
+
+    /** Export-related errors. */
+    data class ExportError(
+        override val code: String,
+        override val message: String,
+        override val recovery: String,
+    ) : ProfileError(code, message, recovery)
+
+    /** Native/JNI-related errors. */
+    data class NativeError(
+        override val code: String,
+        override val message: String,
+        override val recovery: String,
+    ) : ProfileError(code, message, recovery)
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/model/QualityScore.kt">
+package com.openprofiler.domain.model
+
+/**
+ * Quality assessment result for a single frame.
+ * Phase 0: Placeholder.
+ *
+ * @property overallScore Overall quality score in [0.0, 1.0].
+ * @property blur Blur metric.
+ * @property exposure Exposure metric.
+ * @property contrast Contrast metric.
+ * @property isAccepted Whether the frame passes quality thresholds.
+ * @property rejectReason Reason for rejection, null if accepted.
+ */
+data class QualityScore(
+    val overallScore: Double = 0.0,
+    val blur: Double = 0.0,
+    val exposure: Double = 0.0,
+    val contrast: Double = 0.0,
+    val isAccepted: Boolean = false,
+    val rejectReason: String? = null,
+)
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/repository/CalibrationRepository.kt">
+package com.openprofiler.domain.repository
+
+/**
+ * Repository interface for calibration operations.
+ * Phase 0: Empty placeholder.
+ */
+interface CalibrationRepository
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/repository/CameraRepository.kt">
+package com.openprofiler.domain.repository
+
+/**
+ * Repository interface for camera operations.
+ * Phase 0: Empty placeholder.
+ */
+interface CameraRepository
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/repository/ExportRepository.kt">
+package com.openprofiler.domain.repository
+
+/**
+ * Repository interface for profile export operations.
+ * Phase 0: Empty placeholder.
+ */
+interface ExportRepository
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/repository/MetadataRepository.kt">
+package com.openprofiler.domain.repository
+
+/**
+ * Repository interface for device and camera metadata collection.
+ * Phase 0: Empty placeholder.
+ */
+interface MetadataRepository
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/repository/ValidationRepository.kt">
+package com.openprofiler.domain.repository
+
+/**
+ * Repository interface for calibration validation operations.
+ * Phase 0: Empty placeholder.
+ */
+interface ValidationRepository
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/usecase/CollectMetadataUseCase.kt">
+package com.openprofiler.domain.usecase
+
+import com.openprofiler.domain.repository.MetadataRepository
+import javax.inject.Inject
+
+/**
+ * Use case for collecting device and camera metadata.
+ * Phase 0: Placeholder with no business logic.
+ */
+class CollectMetadataUseCase @Inject constructor(
+    private val metadataRepository: MetadataRepository,
+)
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/usecase/ExportProfileUseCase.kt">
+package com.openprofiler.domain.usecase
+
+import com.openprofiler.domain.repository.ExportRepository
+import javax.inject.Inject
+
+/**
+ * Use case for exporting a camera profile to JSON.
+ * Phase 0: Placeholder with no business logic.
+ */
+class ExportProfileUseCase @Inject constructor(
+    private val exportRepository: ExportRepository,
+)
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/usecase/GenerateProfileUseCase.kt">
+package com.openprofiler.domain.usecase
+
+import com.openprofiler.domain.repository.CalibrationRepository
+import com.openprofiler.domain.repository.MetadataRepository
+import javax.inject.Inject
+
+/**
+ * Use case for generating a complete camera profile.
+ * Phase 0: Placeholder with no business logic.
+ */
+class GenerateProfileUseCase @Inject constructor(
+    private val metadataRepository: MetadataRepository,
+    private val calibrationRepository: CalibrationRepository,
+)
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/usecase/StartCalibrationUseCase.kt">
+package com.openprofiler.domain.usecase
+
+import com.openprofiler.domain.repository.CalibrationRepository
+import javax.inject.Inject
+
+/**
+ * Use case for starting a calibration session.
+ * Phase 0: Placeholder with no business logic.
+ */
+class StartCalibrationUseCase @Inject constructor(
+    private val calibrationRepository: CalibrationRepository,
+)
+</file>
+
+<file path="app/src/main/java/com/openprofiler/domain/usecase/ValidateCalibrationUseCase.kt">
+package com.openprofiler.domain.usecase
+
+import com.openprofiler.domain.repository.ValidationRepository
+import javax.inject.Inject
+
+/**
+ * Use case for validating calibration results.
+ * Phase 0: Placeholder with no business logic.
+ */
+class ValidateCalibrationUseCase @Inject constructor(
+    private val validationRepository: ValidationRepository,
+)
+</file>
+
+<file path="app/src/main/java/com/openprofiler/export/ExportRepositoryImpl.kt">
+package com.openprofiler.export
+
+import com.openprofiler.domain.repository.ExportRepository
+import javax.inject.Inject
+
+/**
+ * kotlinx.serialization-backed implementation of [ExportRepository].
+ * Phase 0: Empty placeholder.
+ */
+class ExportRepositoryImpl @Inject constructor() : ExportRepository
+</file>
+
+<file path="app/src/main/java/com/openprofiler/metadata/MetadataRepositoryImpl.kt">
+package com.openprofiler.metadata
+
+import com.openprofiler.domain.repository.MetadataRepository
+import javax.inject.Inject
+
+/**
+ * Camera2 and Android Build backed implementation of [MetadataRepository].
+ * Phase 0: Empty placeholder.
+ */
+class MetadataRepositoryImpl @Inject constructor() : MetadataRepository
+</file>
+
+<file path="app/src/main/java/com/openprofiler/native_bridge/NativeBridge.kt">
+package com.openprofiler.native_bridge
+
+/**
+ * JNI bridge to the native OpenCV-based engine.
+ * Phase 0: Placeholder with library loading and version check.
+ */
+class NativeBridge {
+
+    companion object {
+        init {
+            System.loadLibrary("camera_profiler_native")
+        }
+    }
+
+    /**
+     * Returns the native library version string.
+     * Used to verify JNI bridge is operational.
+     */
+    external fun getNativeVersion(): String
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/quality/QualityEngine.kt">
+package com.openprofiler.quality
+
+import javax.inject.Inject
+
+/**
+ * Engine for evaluating image quality during calibration.
+ * Phase 0: Empty placeholder.
+ */
+class QualityEngine @Inject constructor()
+</file>
+
+<file path="app/src/main/java/com/openprofiler/storage/ProfileStorage.kt">
+package com.openprofiler.storage
+
+import javax.inject.Inject
+
+/**
+ * Local storage handler for camera profiles and calibration data.
+ * Phase 0: Empty placeholder.
+ */
+class ProfileStorage @Inject constructor()
+</file>
+
+<file path="app/src/main/java/com/openprofiler/ui/components/Placeholder.kt">
+package com.openprofiler.ui.components
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+
+/**
+ * Reusable placeholder composable for screens not yet implemented.
+ *
+ * @param screenName The name of the screen to display as placeholder text.
+ */
+@Composable
+fun PlaceholderScreen(screenName: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = screenName,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/ui/navigation/AppNavigation.kt">
+package com.openprofiler.ui.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.openprofiler.ui.screens.SplashScreen
+
+/**
+ * Root navigation composable defining the application navigation graph.
+ * Phase 0: Only the splash screen is wired. All other screens are placeholders.
+ */
+@Composable
+fun AppNavigation() {
+    val navController = rememberNavController()
+    NavHost(
+        navController = navController,
+        startDestination = Route.Splash,
+    ) {
+        composable<Route.Splash> {
+            SplashScreen()
+        }
+    }
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/ui/navigation/Route.kt">
+package com.openprofiler.ui.navigation
+
+import kotlinx.serialization.Serializable
+
+/**
+ * Sealed interface defining all navigation routes in the application.
+ */
+sealed interface Route {
+
+    /** Splash screen shown at application launch. */
+    @Serializable
+    data object Splash : Route
+
+    /** Instructions screen explaining calibration process. */
+    @Serializable
+    data object Instructions : Route
+
+    /** Camera permission request screen. */
+    @Serializable
+    data object Permissions : Route
+
+    /** Live camera preview and calibration screen. */
+    @Serializable
+    data object Camera : Route
+
+    /** Calibration results display screen. */
+    @Serializable
+    data object Results : Route
+
+    /** Application settings screen. */
+    @Serializable
+    data object Settings : Route
+
+    /** About screen with application information. */
+    @Serializable
+    data object About : Route
+
+    /** Developer diagnostics screen. */
+    @Serializable
+    data object Developer : Route
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/ui/screens/SplashScreen.kt">
+package com.openprofiler.ui.screens
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+
+/**
+ * Splash screen displayed at application launch.
+ * Phase 0: Placeholder implementation.
+ */
+@Composable
+fun SplashScreen() {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "Open Camera Profiler",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        }
+    }
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/ui/theme/Color.kt">
+package com.openprofiler.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+/** Primary color palette for Camera Profiler. */
+val ProfilerBlue = Color(0xFF1565C0)
+val ProfilerBlueLight = Color(0xFF5E92F3)
+val ProfilerBlueDark = Color(0xFF003C8F)
+
+val ProfilerSurface = Color(0xFFFAFAFA)
+val ProfilerSurfaceDark = Color(0xFF121212)
+
+val ProfilerOnPrimary = Color(0xFFFFFFFF)
+val ProfilerOnSurface = Color(0xFF1C1B1F)
+val ProfilerOnSurfaceDark = Color(0xFFE6E1E5)
+
+val ProfilerError = Color(0xFFB3261E)
+val ProfilerSuccess = Color(0xFF2E7D32)
+</file>
+
+<file path="app/src/main/java/com/openprofiler/ui/theme/Theme.kt">
+package com.openprofiler.ui.theme
+
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+
+private val LightColorScheme = lightColorScheme(
+    primary = ProfilerBlue,
+    onPrimary = ProfilerOnPrimary,
+    surface = ProfilerSurface,
+    onSurface = ProfilerOnSurface,
+    error = ProfilerError,
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = ProfilerBlueLight,
+    onPrimary = ProfilerOnPrimary,
+    surface = ProfilerSurfaceDark,
+    onSurface = ProfilerOnSurfaceDark,
+    error = ProfilerError,
+)
+
+/**
+ * Camera Profiler application theme.
+ */
+@Composable
+fun CameraProfilerTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit,
+) {
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = CameraProfilerTypography,
+        content = content,
+    )
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/ui/theme/Type.kt">
+package com.openprofiler.ui.theme
+
+import androidx.compose.material3.Typography
+
+/** Typography configuration for Camera Profiler. */
+val CameraProfilerTypography = Typography()
+</file>
+
+<file path="app/src/main/java/com/openprofiler/ui/viewmodel/MainViewModel.kt">
+package com.openprofiler.ui.viewmodel
+
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
+
+/**
+ * Main ViewModel for application-level state management.
+ * Phase 0: Placeholder with empty state.
+ */
+@HiltViewModel
+class MainViewModel @Inject constructor() : ViewModel() {
+
+    private val _uiState = MutableStateFlow(MainUiState())
+
+    /** Observable UI state for the main screen. */
+    val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
+}
+
+/**
+ * Immutable UI state for the main screen.
+ *
+ * @property isReady Whether the application is initialized and ready.
+ */
+data class MainUiState(
+    val isReady: Boolean = false,
+)
+</file>
+
+<file path="app/src/main/java/com/openprofiler/validation/ValidationRepositoryImpl.kt">
+package com.openprofiler.validation
+
+import com.openprofiler.domain.repository.ValidationRepository
+import javax.inject.Inject
+
+/**
+ * Implementation of [ValidationRepository] using OpenCV validation methods.
+ * Phase 0: Empty placeholder.
+ */
+class ValidationRepositoryImpl @Inject constructor() : ValidationRepository
+</file>
+
+<file path="app/src/main/java/com/openprofiler/CameraProfilerApp.kt">
+package com.openprofiler
+
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
+import timber.log.Timber
+
+/**
+ * Application class for Open Camera Profiler.
+ * Initializes dependency injection and logging.
+ */
+@HiltAndroidApp
+class CameraProfilerApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
+    }
+}
+</file>
+
+<file path="app/src/main/java/com/openprofiler/MainActivity.kt">
+package com.openprofiler
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import com.openprofiler.ui.navigation.AppNavigation
+import com.openprofiler.ui.theme.CameraProfilerTheme
+import dagger.hilt.android.AndroidEntryPoint
+
+/**
+ * Single-activity host for the Camera Profiler Compose application.
+ */
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            CameraProfilerTheme {
+                AppNavigation()
+            }
+        }
+    }
+}
+</file>
+
+<file path="app/src/test/java/com/openprofiler/common/util/DispatcherProviderTest.kt">
+package com.openprofiler.common.util
+
+import kotlinx.coroutines.Dispatchers
+import org.junit.Assert.assertEquals
+import org.junit.Test
+
+/**
+ * Unit tests for [DispatcherProvider].
+ */
+class DispatcherProviderTest {
+
+    @Test
+    fun `standard dispatcher provider returns correct dispatchers`() {
+        val provider = StandardDispatcherProvider()
+        assertEquals(Dispatchers.IO, provider.io)
+        assertEquals(Dispatchers.Default, provider.default)
+        assertEquals(Dispatchers.Unconfined, provider.unconfined)
+    }
+}
+</file>
+
+<file path="app/src/test/java/com/openprofiler/domain/usecase/GenerateProfileUseCaseTest.kt">
+package com.openprofiler.domain.usecase
+
+import org.junit.Assert.assertNotNull
+import org.junit.Test
+
+/**
+ * Unit tests for [GenerateProfileUseCase].
+ * Phase 0: Placeholder test verifying module structure.
+ */
+class GenerateProfileUseCaseTest {
+
+    @Test
+    fun `use case class exists`() {
+        assertNotNull(GenerateProfileUseCase::class)
+    }
+}
+</file>
+
+<file path="app/lint.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Disable unused resources check for Phase 0 assets -->
+    <issue id="UnusedResources" severity="warning" />
+    <!-- Allow missing translations during development -->
+    <issue id="MissingTranslation" severity="warning" />
+    <!-- Enforce content descriptions for accessibility -->
+    <issue id="ContentDescription" severity="error" />
+</lint>
+</file>
+
+<file path="app/src/assets/calibration_targets/aprilgrid/specification.json">
+{
+  "type": "aprilgrid",
+  "tagFamily": "tag36h11",
+  "tagsX": 6,
+  "tagsY": 6,
+  "tagSizeMm": 30,
+  "tagSpacingRatio": 0.3,
+  "pageSizes": [
+    "A4",
+    "A3",
+    "Letter"
+  ],
+  "dpi": [
+    300,
+    600
+  ],
+  "marginMm": 10,
+  "notes": "tagSpacingRatio = spacing / tagSize. Follows kalibr aprilgrid.yaml conventions."
+}
+</file>
+
+<file path="app/src/assets/calibration_targets/charuco/specification.json">
+{
+  "type": "charuco",
+  "squaresX": 9,
+  "squaresY": 6,
+  "squareSizeMm": 30,
+  "markerSizeMm": 22,
+  "dictionary": "DICT_5X5_1000",
+  "pageSizes": [
+    "A4",
+    "A3",
+    "Letter"
+  ],
+  "dpi": [
+    300,
+    600
+  ],
+  "marginMm": 10,
+  "notes": "Generate via cv2.aruco.CharucoBoard + cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_1000). markerSize must be < squareSize."
+}
+</file>
+
+<file path="app/src/assets/calibration_targets/chessboard/specification.json">
+{
+  "type": "chessboard",
+  "squaresX": 9,
+  "squaresY": 6,
+  "squareSizeMm": 25,
+  "pageSizes": [
+    "A4",
+    "A3",
+    "Letter"
+  ],
+  "dpi": [
+    300,
+    600
+  ],
+  "marginMm": 10,
+  "notes": "Interior corner count = (squaresX-1) x (squaresY-1). Compatible with cv2.findChessboardCorners."
+}
+</file>
+
+<file path="app/src/assets/calibration_targets/circle_grid/specification.json">
+{
+  "type": "circle_grid",
+  "kind": "symmetric",
+  "pointsPerRow": 4,
+  "pointsPerColumn": 11,
+  "circleSpacingMm": 20,
+  "circleRadiusMm": 4,
+  "pageSizes": [
+    "A4",
+    "A3",
+    "Letter"
+  ],
+  "dpi": [
+    300,
+    600
+  ],
+  "marginMm": 10,
+  "notes": "For an asymmetric grid, use cv2.findCirclesGrid with CALIB_CB_ASYMMETRIC_GRID."
+}
+</file>
+
+<file path="app/src/assets/overlays/bad.svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="45" fill="#E74C3C"/>
+  <path d="M32 32 L68 68 M68 32 L32 68" stroke="white" stroke-width="8" stroke-linecap="round"/>
+</svg>
+</file>
+
+<file path="app/src/assets/overlays/coverage.svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect x="10" y="10" width="80" height="80" rx="8" fill="none" stroke="#FFC107" stroke-width="4" stroke-dasharray="6 4"/>
+  <circle cx="50" cy="50" r="30" fill="#FFC107" fill-opacity="0.2"/>
+</svg>
+</file>
+
+<file path="app/src/assets/overlays/good.svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="45" fill="#2ECC71"/>
+  <path d="M28 52 L44 68 L74 34" stroke="white" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+</file>
+
+<file path="app/src/assets/overlays/move_down.svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <g transform="rotate(180 50 50)">
+    <path d="M50 10 L70 50 L55 50 L55 90 L45 90 L45 50 L30 50 Z" fill="#00E5FF"/>
+  </g>
+</svg>
+</file>
+
+<file path="app/src/assets/overlays/move_left.svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <g transform="rotate(-90 50 50)">
+    <path d="M50 10 L70 50 L55 50 L55 90 L45 90 L45 50 L30 50 Z" fill="#00E5FF"/>
+  </g>
+</svg>
+</file>
+
+<file path="app/src/assets/overlays/move_right.svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <g transform="rotate(90 50 50)">
+    <path d="M50 10 L70 50 L55 50 L55 90 L45 90 L45 50 L30 50 Z" fill="#00E5FF"/>
+  </g>
+</svg>
+</file>
+
+<file path="app/src/assets/overlays/move_up.svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <g transform="rotate(0 50 50)">
+    <path d="M50 10 L70 50 L55 50 L55 90 L45 90 L45 50 L30 50 Z" fill="#00E5FF"/>
+  </g>
+</svg>
+</file>
+
+<file path="app/src/assets/overlays/rotate.svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <path d="M50 15 A35 35 0 1 1 20 50" stroke="#00E5FF" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M50 5 L60 18 L40 18 Z" fill="#00E5FF"/>
+</svg>
+</file>
+
+<file path="app/src/assets/sample_profiles/galaxy_s24_front.json">
+{
+  "device": "Samsung Galaxy S24",
+  "camera": "front",
+  "resolution": {
+    "width": 4032,
+    "height": 3024
+  },
+  "focalLengthPx": 3100,
+  "sensorSizeMm": {
+    "width": 5.76,
+    "height": 4.29
+  },
+  "calibrated": false,
+  "createdAt": "2026-07-28T18:46:11.930Z",
+  "schemaVersion": "1.0"
+}
+</file>
+
+<file path="app/src/assets/sample_profiles/iphone16_front.json">
+{
+  "device": "Apple iPhone 16",
+  "camera": "front",
+  "resolution": {
+    "width": 4032,
+    "height": 3024
+  },
+  "focalLengthPx": 3200,
+  "sensorSizeMm": {
+    "width": 5.7,
+    "height": 4.28
+  },
+  "calibrated": false,
+  "createdAt": "2026-07-28T18:46:11.932Z",
+  "schemaVersion": "1.0"
+}
+</file>
+
+<file path="app/src/assets/sample_profiles/pixel9_front.json">
+{
+  "device": "Google Pixel 9",
+  "camera": "front",
+  "resolution": {
+    "width": 4032,
+    "height": 3024
+  },
+  "focalLengthPx": 3050,
+  "sensorSizeMm": {
+    "width": 5.6,
+    "height": 4.2
+  },
+  "calibrated": false,
+  "createdAt": "2026-07-28T18:46:11.931Z",
+  "schemaVersion": "1.0"
+}
+</file>
+
+<file path="app/src/main/keepRules/rules.keep">
+# Camera Profiler R8 / ProGuard Rules
+
+# Hilt
+-keepclassmembers class * {
+    @dagger.hilt.android.lifecycle.HiltViewModel <init>(...);
+}
+
+# Kotlin Serialization
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.openprofiler.**$$serializer { *; }
+-keepclassmembers class com.openprofiler.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.openprofiler.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# JNI
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# CameraX
+-keep class androidx.camera.** { *; }
+</file>
+
+<file path="app/src/main/res/drawable/ic_launcher_background.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#3DDC84"
+        android:pathData="M0,0h108v108h-108z" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M9,0L9,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,0L19,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M29,0L29,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M39,0L39,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M49,0L49,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M59,0L59,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M69,0L69,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M79,0L79,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M89,0L89,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M99,0L99,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,9L108,9"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,19L108,19"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,29L108,29"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,39L108,39"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,49L108,49"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,59L108,59"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,69L108,69"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,79L108,79"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,89L108,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,99L108,99"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,29L89,29"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,39L89,39"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,49L89,49"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,59L89,59"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,69L89,69"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,79L89,79"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M29,19L29,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M39,19L39,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M49,19L49,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M59,19L59,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M69,19L69,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M79,19L79,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+</vector>
+</file>
+
+<file path="app/src/main/res/drawable/ic_launcher_foreground.xml">
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="85.84757"
+                android:endY="92.4963"
+                android:startX="42.9492"
+                android:startY="49.59793"
+                android:type="linear">
+                <item
+                    android:color="#44000000"
+                    android:offset="0.0" />
+                <item
+                    android:color="#00000000"
+                    android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="nonZero"
+        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
+        android:strokeWidth="1"
+        android:strokeColor="#00000000" />
+</vector>
+</file>
+
+<file path="app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>
+</file>
+
+<file path="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>
+</file>
+
+<file path="app/src/main/res/values/colors.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
+</file>
+
+<file path="app/src/main/res/values/strings.xml">
+<resources>
+    <string name="app_name">Camera Profiler</string>
+</resources>
+</file>
+
+<file path="app/src/main/res/values/themes.xml">
+<resources>
+    <style name="Theme.CameraProfiler" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+</resources>
+</file>
+
+<file path="app/src/main/res/xml/backup_rules.xml">
+<?xml version="1.0" encoding="utf-8"?><!--
+   Sample backup rules file; uncomment and customize as necessary.
+   See https://developer.android.com/guide/topics/data/autobackup
+   for details.
+   Note: This file is ignored for devices older than API 31
+   See https://developer.android.com/about/versions/12/backup-restore
+-->
+<full-backup-content>
+    <!--
+   <include domain="sharedpref" path="."/>
+   <exclude domain="sharedpref" path="device.xml"/>
+-->
+</full-backup-content>
+</file>
+
+<file path="app/src/main/res/xml/data_extraction_rules.xml">
+<?xml version="1.0" encoding="utf-8"?><!--
+   Sample data extraction rules file; uncomment and customize as necessary.
+   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
+   for details.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- TODO: Use <include> and <exclude> to control what is backed up.
+        <include .../>
+        <exclude .../>
+        -->
+    </cloud-backup>
+    <!--
+    <device-transfer>
+        <include .../>
+        <exclude .../>
+    </device-transfer>
+    -->
+</data-extraction-rules>
+</file>
+
+<file path="app/src/main/AndroidManifest.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+
+    <application
+        android:name=".CameraProfilerApp"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.CameraProfiler"
+        tools:targetApi="31">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.CameraProfiler">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+</file>
+
+<file path="app/.gitignore">
+/build
+</file>
+
+<file path="app/build.gradle.kts">
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
+}
+
+android {
+    namespace = "com.openprofiler"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "com.openprofiler"
+        minSdk = 26
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+        }
+
+        externalNativeBuild {
+            cmake {
+                cppFlags += "-std=c++17"
+                arguments += "-DANDROID_STL=c++_shared"
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
+        release {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "src/main/keepRules/rules.keep"
+            )
+        }
+    }
+
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+        }
+        create("production") {
+            dimension = "environment"
+        }
+    }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
+
+    lint {
+        warningsAsErrors = false
+        abortOnError = false
+        checkDependencies = true
+        xmlReport = true
+        htmlReport = true
+        lintConfig = file("lint.xml")
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+}
+
+dependencies {
+    // AndroidX Core
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+
+    // Lifecycle
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // Compose
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // Navigation
+    implementation(libs.androidx.navigation.compose)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+
+    // CameraX
+    implementation(libs.camerax.core)
+    implementation(libs.camerax.camera2)
+    implementation(libs.camerax.lifecycle)
+    implementation(libs.camerax.view)
+
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+
+    // Logging
+    implementation(libs.timber)
+
+    // Material
+    implementation(libs.material)
+
+    // Unit Testing
+    testImplementation(libs.junit)
+    testImplementation(libs.truth)
+    testImplementation(libs.mockk)
+    testImplementation(libs.turbine)
+    testImplementation(libs.kotlinx.coroutines.test)
+
+    // Instrumentation Testing
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.hilt.testing)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    kspAndroidTest(libs.hilt.compiler)
+}
+</file>
+
+<file path="gradle/wrapper/gradle-wrapper.properties">
+#Wed Jul 29 00:43:14 IST 2026
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionSha256Sum=553c78f50dafcd54d65b9a444649057857469edf836431389695608536d6b746
+distributionUrl=https\://services.gradle.org/distributions/gradle-9.5.0-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+</file>
+
+<file path="gradle/gradle-daemon-jvm.properties">
+#This file is generated by updateDaemonJvm
+toolchainUrl.FREE_BSD.AARCH64=https\://api.foojay.io/disco/v3.0/ids/ec7520a1e057cd116f9544c42142a16b/redirect
+toolchainUrl.FREE_BSD.X86_64=https\://api.foojay.io/disco/v3.0/ids/4c4f879899012ff0a8b2e2117df03b0e/redirect
+toolchainUrl.LINUX.AARCH64=https\://api.foojay.io/disco/v3.0/ids/ec7520a1e057cd116f9544c42142a16b/redirect
+toolchainUrl.LINUX.X86_64=https\://api.foojay.io/disco/v3.0/ids/4c4f879899012ff0a8b2e2117df03b0e/redirect
+toolchainUrl.MAC_OS.AARCH64=https\://api.foojay.io/disco/v3.0/ids/73bcfb608d1fde9fb62e462f834a3299/redirect
+toolchainUrl.MAC_OS.X86_64=https\://api.foojay.io/disco/v3.0/ids/846ee0d876d26a26f37aa1ce8de73224/redirect
+toolchainUrl.UNIX.AARCH64=https\://api.foojay.io/disco/v3.0/ids/ec7520a1e057cd116f9544c42142a16b/redirect
+toolchainUrl.UNIX.X86_64=https\://api.foojay.io/disco/v3.0/ids/4c4f879899012ff0a8b2e2117df03b0e/redirect
+toolchainUrl.WINDOWS.AARCH64=https\://api.foojay.io/disco/v3.0/ids/9482ddec596298c84656d31d16652665/redirect
+toolchainUrl.WINDOWS.X86_64=https\://api.foojay.io/disco/v3.0/ids/39701d92e1756bb2f141eb67cd4c660e/redirect
+toolchainVersion=21
+</file>
+
+<file path="gradle/libs.versions.toml">
+[versions]
+agp = "8.8.2"
+kotlin = "2.1.0"
+ksp = "2.1.0-1.0.29"
+coreKtx = "1.15.0"
+appcompat = "1.7.0"
+material = "1.12.0"
+lifecycleRuntimeKtx = "2.8.7"
+activityCompose = "1.9.3"
+composeBom = "2024.12.01"
+navigationCompose = "2.8.5"
+hilt = "2.55"
+hiltNavigationCompose = "1.2.0"
+camerax = "1.4.1"
+kotlinxSerialization = "1.7.3"
+timber = "5.0.1"
+coroutines = "1.9.0"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+truth = "1.4.4"
+mockk = "1.13.13"
+turbine = "1.2.0"
+
+[libraries]
+# AndroidX Core
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+
+# Lifecycle
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
+
+# Compose
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+
+# Navigation
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+
+# Hilt
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+hilt-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
+
+# CameraX
+camerax-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
+camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
+
+# Serialization
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+
+# Coroutines
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+
+# Logging
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+
+# Material
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
+# Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+</file>
+
+<file path="build.gradle.kts">
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.kotlin.compose) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.hilt) apply false
+    alias(libs.plugins.ksp) apply false
+}
+</file>
+
+<file path="gradle.properties">
+# Project-wide Gradle settings.
+org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
+org.gradle.parallel=true
+org.gradle.configuration-cache=true
+org.gradle.caching=true
+
+# Kotlin
+kotlin.code.style=official
+
+# AndroidX
+android.useAndroidX=true
+android.nonTransitiveRClass=true
+# Enabled parallel sync for Gradle 9.4+
+org.gradle.tooling.parallel=true
+</file>
+
+<file path="gradlew">
+#!/bin/sh
+
+#
+# Copyright © 2015 the original authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+##############################################################################
+#
+#   Gradle start up script for POSIX generated by Gradle.
+#
+#   Important for running:
+#
+#   (1) You need a POSIX-compliant shell to run this script. If your /bin/sh is
+#       noncompliant, but you have some other compliant shell such as ksh or
+#       bash, then to run this script, type that shell name before the whole
+#       command line, like:
+#
+#           ksh Gradle
+#
+#       Busybox and similar reduced shells will NOT work, because this script
+#       requires all of these POSIX shell features:
+#         * functions;
+#         * expansions «$var», «${var}», «${var:-default}», «${var+SET}»,
+#           «${var#prefix}», «${var%suffix}», and «$( cmd )»;
+#         * compound commands having a testable exit status, especially «case»;
+#         * various built-in commands including «command», «set», and «ulimit».
+#
+#   Important for patching:
+#
+#   (2) This script targets any POSIX shell, so it avoids extensions provided
+#       by Bash, Ksh, etc; in particular arrays are avoided.
+#
+#       The "traditional" practice of packing multiple parameters into a
+#       space-separated string is a well documented source of bugs and security
+#       problems, so this is (mostly) avoided, by progressively accumulating
+#       options in "$@", and eventually passing that to Java.
+#
+#       Where the inherited environment variables (DEFAULT_JVM_OPTS, JAVA_OPTS,
+#       and GRADLE_OPTS) rely on word-splitting, this is performed explicitly;
+#       see the in-line comments for details.
+#
+#       There are tweaks for specific operating systems such as AIX, CygWin,
+#       Darwin, MinGW, and NonStop.
+#
+#   (3) This script is generated from the Groovy template
+#       https://github.com/gradle/gradle/blob/HEAD/platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt
+#       within the Gradle project.
+#
+#       You can find Gradle at https://github.com/gradle/gradle/.
+#
+##############################################################################
+
+# Attempt to set APP_HOME
+
+# Resolve links: $0 may be a link
+app_path=$0
+
+# Need this for daisy-chained symlinks.
+while
+    APP_HOME=${app_path%"${app_path##*/}"}  # leaves a trailing /; empty if no leading path
+    [ -h "$app_path" ]
+do
+    ls=$( ls -ld "$app_path" )
+    link=${ls#*' -> '}
+    case $link in             #(
+      /*)   app_path=$link ;; #(
+      *)    app_path=$APP_HOME$link ;;
+    esac
+done
+
+# This is normally unused
+# shellcheck disable=SC2034
+APP_BASE_NAME=${0##*/}
+# Discard cd standard output in case $CDPATH is set (https://github.com/gradle/gradle/issues/25036)
+APP_HOME=$( cd -P "${APP_HOME:-./}" > /dev/null && printf '%s\n' "$PWD" ) || exit
+
+# Use the maximum available, or set MAX_FD != -1 to use that value.
+MAX_FD=maximum
+
+warn () {
+    echo "$*"
+} >&2
+
+die () {
+    echo
+    echo "$*"
+    echo
+    exit 1
+} >&2
+
+# OS specific support (must be 'true' or 'false').
+cygwin=false
+msys=false
+darwin=false
+nonstop=false
+case "$( uname )" in                #(
+  CYGWIN* )         cygwin=true  ;; #(
+  Darwin* )         darwin=true  ;; #(
+  MSYS* | MINGW* )  msys=true    ;; #(
+  NONSTOP* )        nonstop=true ;;
+esac
+
+CLASSPATH="\\\"\\\""
+
+
+# Determine the Java command to use to start the JVM.
+if [ -n "$JAVA_HOME" ] ; then
+    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
+        # IBM's JDK on AIX uses strange locations for the executables
+        JAVACMD=$JAVA_HOME/jre/sh/java
+    else
+        JAVACMD=$JAVA_HOME/bin/java
+    fi
+    if [ ! -x "$JAVACMD" ] ; then
+        die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+    fi
+else
+    JAVACMD=java
+    if ! command -v java >/dev/null 2>&1
+    then
+        die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+    fi
+fi
+
+# Increase the maximum file descriptors if we can.
+if ! "$cygwin" && ! "$darwin" && ! "$nonstop" ; then
+    case $MAX_FD in #(
+      max*)
+        # In POSIX sh, ulimit -H is undefined. That's why the result is checked to see if it worked.
+        # shellcheck disable=SC2039,SC3045
+        MAX_FD=$( ulimit -H -n ) ||
+            warn "Could not query maximum file descriptor limit"
+    esac
+    case $MAX_FD in  #(
+      '' | soft) :;; #(
+      *)
+        # In POSIX sh, ulimit -n is undefined. That's why the result is checked to see if it worked.
+        # shellcheck disable=SC2039,SC3045
+        ulimit -n "$MAX_FD" ||
+            warn "Could not set maximum file descriptor limit to $MAX_FD"
+    esac
+fi
+
+# Collect all arguments for the java command, stacking in reverse order:
+#   * args from the command line
+#   * the main class name
+#   * -classpath
+#   * -D...appname settings
+#   * --module-path (only if needed)
+#   * DEFAULT_JVM_OPTS, JAVA_OPTS, and GRADLE_OPTS environment variables.
+
+# For Cygwin or MSYS, switch paths to Windows format before running java
+if "$cygwin" || "$msys" ; then
+    APP_HOME=$( cygpath --path --mixed "$APP_HOME" )
+    CLASSPATH=$( cygpath --path --mixed "$CLASSPATH" )
+
+    JAVACMD=$( cygpath --unix "$JAVACMD" )
+
+    # Now convert the arguments - kludge to limit ourselves to /bin/sh
+    for arg do
+        if
+            case $arg in                                #(
+              -*)   false ;;                            # don't mess with options #(
+              /?*)  t=${arg#/} t=/${t%%/*}              # looks like a POSIX filepath
+                    [ -e "$t" ] ;;                      #(
+              *)    false ;;
+            esac
+        then
+            arg=$( cygpath --path --ignore --mixed "$arg" )
+        fi
+        # Roll the args list around exactly as many times as the number of
+        # args, so each arg winds up back in the position where it started, but
+        # possibly modified.
+        #
+        # NB: a `for` loop captures its iteration list before it begins, so
+        # changing the positional parameters here affects neither the number of
+        # iterations, nor the values presented in `arg`.
+        shift                   # remove old arg
+        set -- "$@" "$arg"      # push replacement arg
+    done
+fi
+
+
+# Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
+DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
+
+# Collect all arguments for the java command:
+#   * DEFAULT_JVM_OPTS, JAVA_OPTS, and optsEnvironmentVar are not allowed to contain shell fragments,
+#     and any embedded shellness will be escaped.
+#   * For example: A user cannot expect ${Hostname} to be expanded, as it is an environment variable and will be
+#     treated as '${Hostname}' itself on the command line.
+
+set -- \
+        "-Dorg.gradle.appname=$APP_BASE_NAME" \
+        -classpath "$CLASSPATH" \
+        -jar "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" \
+        "$@"
+
+# Stop when "xargs" is not available.
+if ! command -v xargs >/dev/null 2>&1
+then
+    die "xargs is not available"
+fi
+
+# Use "xargs" to parse quoted args.
+#
+# With -n1 it outputs one arg per line, with the quotes and backslashes removed.
+#
+# In Bash we could simply go:
+#
+#   readarray ARGS < <( xargs -n1 <<<"$var" ) &&
+#   set -- "${ARGS[@]}" "$@"
+#
+# but POSIX shell has neither arrays nor command substitution, so instead we
+# post-process each arg (as a line of input to sed) to backslash-escape any
+# character that might be a shell metacharacter, then use eval to reverse
+# that process (while maintaining the separation between arguments), and wrap
+# the whole thing up as a single "set" statement.
+#
+# This will of course break if any of these variables contains a newline or
+# an unmatched quote.
+#
+
+eval "set -- $(
+        printf '%s\n' "$DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS" |
+        xargs -n1 |
+        sed ' s~[^-[:alnum:]+,./:=@_]~\\&~g; ' |
+        tr '\n' ' '
+    )" '"$@"'
+
+exec "$JAVACMD" "$@"
+</file>
+
+<file path="gradlew.bat">
+@rem
+@rem Copyright 2015 the original author or authors.
+@rem
+@rem Licensed under the Apache License, Version 2.0 (the "License");
+@rem you may not use this file except in compliance with the License.
+@rem You may obtain a copy of the License at
+@rem
+@rem      https://www.apache.org/licenses/LICENSE-2.0
+@rem
+@rem Unless required by applicable law or agreed to in writing, software
+@rem distributed under the License is distributed on an "AS IS" BASIS,
+@rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+@rem See the License for the specific language governing permissions and
+@rem limitations under the License.
+@rem
+@rem SPDX-License-Identifier: Apache-2.0
+@rem
+
+@if "%DEBUG%"=="" @echo off
+@rem ##########################################################################
+@rem
+@rem  Gradle startup script for Windows
+@rem
+@rem ##########################################################################
+
+@rem Set local scope for the variables with windows NT shell
+if "%OS%"=="Windows_NT" setlocal
+
+set DIRNAME=%~dp0
+if "%DIRNAME%"=="" set DIRNAME=.
+@rem This is normally unused
+set APP_BASE_NAME=%~n0
+set APP_HOME=%DIRNAME%
+
+@rem Resolve any "." and ".." in APP_HOME to make it shorter.
+for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
+
+@rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
+set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
+
+@rem Find java.exe
+if defined JAVA_HOME goto findJavaFromJavaHome
+
+set JAVA_EXE=java.exe
+%JAVA_EXE% -version >NUL 2>&1
+if %ERRORLEVEL% equ 0 goto execute
+
+echo. 1>&2
+echo ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH. 1>&2
+echo. 1>&2
+echo Please set the JAVA_HOME variable in your environment to match the 1>&2
+echo location of your Java installation. 1>&2
+
+goto fail
+
+:findJavaFromJavaHome
+set JAVA_HOME=%JAVA_HOME:"=%
+set JAVA_EXE=%JAVA_HOME%/bin/java.exe
+
+if exist "%JAVA_EXE%" goto execute
+
+echo. 1>&2
+echo ERROR: JAVA_HOME is set to an invalid directory: %JAVA_HOME% 1>&2
+echo. 1>&2
+echo Please set the JAVA_HOME variable in your environment to match the 1>&2
+echo location of your Java installation. 1>&2
+
+goto fail
+
+:execute
+@rem Setup the command line
+
+set CLASSPATH=
+
+
+@rem Execute Gradle
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %*
+
+:end
+@rem End local scope for the variables with windows NT shell
+if %ERRORLEVEL% equ 0 goto mainEnd
+
+:fail
+rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of
+rem the _cmd.exe /c_ return code!
+set EXIT_CODE=%ERRORLEVEL%
+if %EXIT_CODE% equ 0 set EXIT_CODE=1
+if not ""=="%GRADLE_EXIT_CONSOLE%" exit %EXIT_CODE%
+exit /b %EXIT_CODE%
+
+:mainEnd
+if "%OS%"=="Windows_NT" endlocal
+
+:omega
+</file>
+
+<file path="settings.gradle.kts">
+pluginManagement {
+    repositories {
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "camera-profiler"
+include(":app")
+</file>
+
+<file path=".gitignore">
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+local.properties
+
+.idea/
+*.iml
+
+# User-specific IDE files
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/dictionaries/
+.idea/shelf/
+.idea/caches/
+.idea/libraries/
+
+# Generated IDE files
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+
+*.apk
+*.ap_
+*.aab
+*.aar
+output-metadata.json
+
+.externalNativeBuild/
+.cxx/
+
+*.log
+hs_err_pid*
+replay_pid*
+
+*.hprof
+captures/
+
+*.jks
+*.keystore
+*.pem
+
+google-services.json
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+.kotlin/
+
+lint/intermediates/
+lint/generated/
+lint/reports/
+reports/
+
+filestructure.txt
+/Docs
+</file>
+
+</files>
