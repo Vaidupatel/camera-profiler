@@ -1,11 +1,9 @@
 package com.openprofiler.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.openprofiler.domain.repository.CameraRepository
 import com.openprofiler.ui.screens.AboutScreen
 import com.openprofiler.ui.screens.CalibrationScreen
 import com.openprofiler.ui.screens.CameraScreen
@@ -18,12 +16,10 @@ import com.openprofiler.ui.screens.SplashScreen
 
 /**
  * Root navigation composable defining the complete 9-screen navigation graph.
- * Phase 2: CameraRepository injected into CameraScreen for live CameraX preview.
+ * Fully MVVM-compliant — screen composables acquire ViewModels via Hilt.
  */
 @Composable
-fun AppNavigation(
-    cameraRepository: CameraRepository? = null,
-) {
+fun AppNavigation() {
     val navController = rememberNavController()
 
     NavHost(
@@ -51,7 +47,6 @@ fun AppNavigation(
 
         composable<Route.Camera> {
             CameraScreen(
-                cameraRepository = cameraRepository,
                 onStartCalibration = { navController.navigate(Route.Calibration) },
                 onSettings = { navController.navigate(Route.Settings) },
             )

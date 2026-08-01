@@ -15,5 +15,5 @@
     600
   ],
   "marginMm": 10,
-  "notes": "Generate via cv2.aruco.CharucoBoard + cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_1000). markerSize must be < squareSize."
+  "notes": "Canonical ChArUco target for this app. Must stay identical to app/src/main/assets/charuco_board.json (runtime detector): squaresX/Y, dictionary, squareSizeMm↔squareLengthMm, markerSizeMm↔markerLengthMm. Generate via cv2.aruco.CharucoBoard + DICT_5X5_1000; markerSize must be < squareSize. Print charuco_board.png at the listed DPI — do not rely on an LCD for calibration."
 }

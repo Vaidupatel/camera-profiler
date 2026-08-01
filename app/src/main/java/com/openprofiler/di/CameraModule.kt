@@ -1,7 +1,9 @@
 package com.openprofiler.di
 
 import com.openprofiler.calibration.CalibrationRepositoryImpl
+import com.openprofiler.camera.CameraProviderClient
 import com.openprofiler.camera.CameraRepositoryImpl
+import com.openprofiler.camera.ProcessCameraProviderClient
 import com.openprofiler.domain.repository.CalibrationRepository
 import com.openprofiler.domain.repository.CameraRepository
 import com.openprofiler.domain.repository.ExportRepository
@@ -22,6 +24,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class CameraModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindCameraProviderClient(
+        impl: ProcessCameraProviderClient,
+    ): CameraProviderClient
 
     @Binds
     @Singleton

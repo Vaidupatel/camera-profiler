@@ -7,6 +7,14 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+hilt {
+    enableAggregatingTask = true
+}
+
+ksp {
+    arg("dagger.hilt.shareTestComponents", "true")
+}
+
 android {
     namespace = "com.openprofiler"
     compileSdk = 35
@@ -30,8 +38,8 @@ android {
                 cppFlags += "-std=c++17"
                 arguments += listOf(
                     "-DANDROID_STL=c++_shared",
-                    "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384",
-                    "-DCMAKE_EXE_LINKER_FLAGS=-Wl,-z,max-page-size=16384"
+                    "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=65536",
+                    "-DCMAKE_EXE_LINKER_FLAGS=-Wl,-z,max-page-size=65536"
                 )
             }
         }
@@ -81,6 +89,12 @@ android {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
             version = "3.22.1"
+        }
+    }
+
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("src/main/cpp/opencv/sdk/native/libs")
         }
     }
 
@@ -164,6 +178,7 @@ dependencies {
 
     // Instrumentation Testing
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.truth)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.hilt.testing)
     androidTestImplementation(platform(libs.androidx.compose.bom))

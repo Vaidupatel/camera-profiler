@@ -21,24 +21,51 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.openprofiler.common.util.Logger
+import com.openprofiler.ui.components.CameraPreview
+import com.openprofiler.ui.components.DetectionOverlay
+import com.openprofiler.ui.viewmodel.CalibrationViewModel
+
+private const val TAG = "CalibrationScreen"
 
 /**
- * Live calibration screen displaying progress, coverage, and frame quality feedback.
- * Phase 1: UI Skeleton — No OpenCV / Algorithms.
+ * Calibration Session screen — owns the live CameraX Preview + ImageAnalysis session.
  *
- * @param onFinishCalibration Navigation callback when calibration is complete.
- * @param onCancel Navigation callback to cancel calibration.
+ * Camera session ownership is token-based on the shared [com.openprofiler.domain.repository.CameraRepository]
+ * singleton. A late [DisposableEffect] stop from CameraScreen cannot unbind this session once
+ * Calibration has acquired a newer [com.openprofiler.domain.repository.CameraSessionToken].
+ *
+ * Overlay draws above preview; it never replaces PreviewView.
+ * Coverage UI remains a Phase-6 placeholder (always 0%).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalibrationScreen(
+    viewModel: CalibrationViewModel = hiltViewModel(),
     onFinishCalibration: () -> Unit = {},
     onCancel: () -> Unit = {},
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val uiState by viewModel.uiState.collectAsState()
+
+    DisposableEffect(Unit) {
+        Logger.i(TAG, "Entered calibration session composition")
+        onDispose {
+            // Unbind when leaving this screen so only one session exists app-wide.
+            Logger.i(TAG, "Leaving calibration session — stopping camera")
+            viewModel.stopCamera()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -56,15 +83,20 @@ fun CalibrationScreen(
                 .padding(padding)
                 .background(Color.Black),
         ) {
-            // Live detection overlay placeholder
-            Text(
-                text = "[ Live Detection Overlay ]",
-                color = Color.DarkGray,
-                modifier = Modifier.align(Alignment.Center),
-                style = MaterialTheme.typography.titleMedium,
+            // 1. Live CameraX Preview (must remain visible behind overlay)
+            CameraPreview(
+                onSurfaceProviderReady = { surfaceProvider ->
+                    Logger.i(TAG, "Calibration Preview SurfaceProvider ready — binding camera")
+                    viewModel.startCamera(lifecycleOwner, surfaceProvider)
+                },
             )
 
-            // Status panel overlay
+            // 2. Detection overlay drawn above preview (never replaces it)
+            DetectionOverlay(
+                detectionResult = uiState.detectionResult,
+            )
+
+            // 3. Bottom status card
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -88,8 +120,15 @@ fun CalibrationScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text("Accepted Frames: 0 / 15 minimum")
-                        Text("Target Status: Searching...")
-                        Text("Quality: Waiting for frames")
+                        Text(uiState.targetStatusText)
+                        Text(uiState.qualityStatusText)
+
+                        val streaming = if (uiState.cameraState.isStreaming) "ON" else "OFF"
+                        Text(
+                            text = "Camera: $streaming · ${uiState.cameraState.resolution}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
 
@@ -100,7 +139,7 @@ fun CalibrationScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     OutlinedButton(onClick = onCancel) {
-                        Text("Cancel", color = Color.White)
+                        Text("Cancel")
                     }
                     Button(onClick = onFinishCalibration) {
                         Text("View Results")

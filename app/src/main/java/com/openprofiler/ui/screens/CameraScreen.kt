@@ -4,7 +4,6 @@ import androidx.camera.core.CameraSelector
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,7 +13,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -28,45 +26,51 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
-import com.openprofiler.domain.repository.CameraRepository
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.openprofiler.common.util.Logger
 import com.openprofiler.ui.components.CameraPreview
+import com.openprofiler.ui.components.DetectionOverlay
+import com.openprofiler.ui.viewmodel.CameraViewModel
+
+private const val TAG = "CameraScreen"
 
 /**
- * Live CameraX preview screen with lens switching and session controls.
- * Phase 2: Live CameraX preview integration — No OpenCV / Metadata logic.
+ * Live CameraX preview screen with real-time target detection overlay.
  *
- * @param cameraRepository Injected CameraRepository handling CameraX session.
- * @param onStartCalibration Navigation callback to begin calibration.
- * @param onSettings Navigation callback to open settings.
+ * Session ownership:
+ * [CameraViewModel] acquires a [com.openprofiler.domain.repository.CameraSessionToken] on
+ * start and releases only that token on dispose. If CalibrationScreen has already started a
+ * newer session, this dispose stop is a deterministic no-op on the shared repository.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CameraScreen(
-    cameraRepository: CameraRepository? = null,
+    viewModel: CameraViewModel = hiltViewModel(),
     onStartCalibration: () -> Unit = {},
     onSettings: () -> Unit = {},
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
-    val cameraState by (cameraRepository?.cameraState?.collectAsState()
-        ?: androidx.compose.runtime.mutableStateOf(com.openprofiler.camera.CameraState()))
+    val uiState by viewModel.uiState.collectAsState()
 
     DisposableEffect(Unit) {
+        Logger.i(TAG, "Entered live camera screen")
         onDispose {
-            cameraRepository?.stopCamera()
+            Logger.i(TAG, "Leaving live camera screen — releasing this screen's camera session token")
+            viewModel.stopCamera()
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Live CameraX Preview") },
+                title = { Text("Live CameraX Preview & Target Detection") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black,
                     titleContentColor = Color.White,
                     actionIconContentColor = Color.White,
                 ),
                 actions = {
-                    IconButton(onClick = { cameraRepository?.switchCamera() }) {
+                    IconButton(onClick = { viewModel.switchCamera() }) {
                         Text("🔄", color = Color.White)
                     }
                     IconButton(onClick = onSettings) {
@@ -83,22 +87,17 @@ fun CameraScreen(
                 .background(Color.Black),
             contentAlignment = Alignment.Center,
         ) {
-            // Live CameraX Preview Surface
-            if (cameraRepository != null) {
-                CameraPreview(
-                    onSurfaceProviderReady = { surfaceProvider ->
-                        cameraRepository.startCamera(lifecycleOwner, surfaceProvider)
-                    },
-                )
-            } else {
-                Text(
-                    text = "[ CameraX Live Preview Ready ]",
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
+            CameraPreview(
+                onSurfaceProviderReady = { surfaceProvider ->
+                    Logger.i(TAG, "Camera Preview SurfaceProvider ready — binding camera")
+                    viewModel.startCamera(lifecycleOwner, surfaceProvider)
+                },
+            )
 
-            // Bottom overlay controls
+            DetectionOverlay(
+                detectionResult = uiState.detectionResult,
+            )
+
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -106,9 +105,13 @@ fun CameraScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                val lensText = if (cameraState.lensFacing == CameraSelector.LENS_FACING_BACK) "Rear Camera" else "Front Camera"
+                val lensText = if (uiState.cameraState.lensFacing == CameraSelector.LENS_FACING_BACK) {
+                    "Rear Camera"
+                } else {
+                    "Front Camera"
+                }
                 Text(
-                    text = "Active Lens: $lensText | Resolution: ${cameraState.resolution}",
+                    text = "Active Lens: $lensText | Res: ${uiState.cameraState.resolution}",
                     color = Color.White,
                     style = MaterialTheme.typography.bodyMedium,
                 )
