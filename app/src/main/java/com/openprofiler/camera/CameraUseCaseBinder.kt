@@ -7,12 +7,14 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.lifecycle.LifecycleOwner
 import java.util.concurrent.Executor
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Bound CameraX use cases for one session.
  * Fields may be null in unit-test fakes that only exercise session ownership.
  */
-internal data class BoundCameraUseCases(
+data class BoundCameraUseCases(
     val preview: Preview?,
     val imageCapture: ImageCapture?,
     val imageAnalysis: ImageAnalysis?,
@@ -23,7 +25,7 @@ internal data class BoundCameraUseCases(
  * Separated from session-ownership logic so ownership races can be unit-tested
  * without constructing real CameraX use-case graphs.
  */
-internal interface CameraUseCaseBinder {
+interface CameraUseCaseBinder {
 
     fun bind(
         provider: ProcessCameraProvider,
@@ -40,7 +42,8 @@ internal interface CameraUseCaseBinder {
 /**
  * Production binder that builds Preview / ImageCapture / ImageAnalysis and binds them.
  */
-internal class DefaultCameraUseCaseBinder : CameraUseCaseBinder {
+@Singleton
+class DefaultCameraUseCaseBinder @Inject constructor() : CameraUseCaseBinder {
 
     override fun bind(
         provider: ProcessCameraProvider,

@@ -145,6 +145,31 @@ class CameraRepositoryImplTest {
     }
 
     @Test
+    fun secondStartCamera_sameLifecycleAndLens_skipsFullRebind() {
+        val token1 = repository.startCamera(lifecycleOwner, surfaceProvider)
+        assertThat(recordingBinder.bindCount.get()).isEqualTo(1)
+
+        val surface2: Preview.SurfaceProvider = mockk(relaxed = true)
+        val token2 = repository.startCamera(lifecycleOwner, surface2)
+
+        assertThat(token2.id).isGreaterThan(token1.id)
+        // Same lens + same LifecycleOwner ⇒ reuse graph (analyzer/surface only).
+        assertThat(recordingBinder.bindCount.get()).isEqualTo(1)
+        assertThat(repository.isSessionActive()).isTrue()
+        repository.stopCamera(token2)
+    }
+
+    @Test
+    fun switchCamera_forcesFullRebind() {
+        repository.startCamera(lifecycleOwner, surfaceProvider)
+        assertThat(recordingBinder.bindCount.get()).isEqualTo(1)
+
+        repository.switchCamera()
+        assertThat(recordingBinder.bindCount.get()).isEqualTo(2)
+        repository.stopCamera(repository.currentSessionToken())
+    }
+
+    @Test
     fun stopCamera_withNoneToken_isNoOp() {
         repository.startCamera(lifecycleOwner, surfaceProvider)
         assertThat(repository.isSessionActive()).isTrue()

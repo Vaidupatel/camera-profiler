@@ -4,6 +4,7 @@ import com.openprofiler.domain.model.QualityMetric
 import com.openprofiler.domain.model.QualityMetricId
 import com.openprofiler.domain.model.QualityMetricStatus
 import com.openprofiler.domain.model.QualityThresholds
+import com.openprofiler.domain.model.IntrinsicsSource
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -255,7 +256,8 @@ object QualityMetricRules {
         rollDegrees: Double?,
         distanceMm: Double?,
         frontalScore: Double?,
-        t: QualityThresholds
+        t: QualityThresholds,
+        intrinsicsSource: IntrinsicsSource = IntrinsicsSource.UNAVAILABLE,
     ): QualityMetric {
         if (pitchDegrees == null || yawDegrees == null || rollDegrees == null ||
             distanceMm == null || frontalScore == null
@@ -279,17 +281,18 @@ object QualityMetricRules {
             frontalWarn -> QualityMetricStatus.WARNING
             else -> QualityMetricStatus.PASS
         }
+        val provenanceNote = "intrinsicsSource=${intrinsicsSource.name}"
         val reason = when {
             angleFail ->
-                "Pose angles exceed limits: pitch=$pitchDegrees yaw=$yawDegrees roll=$rollDegrees"
+                "Pose angles exceed limits: pitch=$pitchDegrees yaw=$yawDegrees roll=$rollDegrees ($provenanceNote)"
             distanceFail ->
-                "Pose distance $distanceMm mm outside [${t.minDistanceMm}, ${t.maxDistanceMm}]"
+                "Pose distance $distanceMm mm outside [${t.minDistanceMm}, ${t.maxDistanceMm}] ($provenanceNote)"
             frontalFail ->
-                "Frontal score $frontalScore below minimum ${t.minFrontalScore} (near-singular view)"
+                "Frontal score $frontalScore below minimum ${t.minFrontalScore} (near-singular view) ($provenanceNote)"
             frontalWarn ->
-                "Frontal score $frontalScore below warning ${t.warningFrontalScore}"
+                "Frontal score $frontalScore below warning ${t.warningFrontalScore} ($provenanceNote)"
             else ->
-                "Pose quality acceptable: frontal=$frontalScore distanceMm=$distanceMm"
+                "Pose quality acceptable: frontal=$frontalScore distanceMm=$distanceMm ($provenanceNote)"
         }
         return QualityMetric(
             id = QualityMetricId.POSE_QUALITY,
@@ -301,7 +304,8 @@ object QualityMetricRules {
                 "pitchDegrees" to pitchDegrees,
                 "yawDegrees" to yawDegrees,
                 "rollDegrees" to rollDegrees,
-                "distanceMm" to distanceMm
+                "distanceMm" to distanceMm,
+                "intrinsicsSourceOrdinal" to intrinsicsSource.ordinal.toDouble(),
             )
         )
     }

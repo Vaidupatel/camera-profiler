@@ -1,6 +1,7 @@
 #include "charuco_detector_engine.h"
 #include "image_buffer_utils.h"
 #include <android/log.h>
+#include <cmath>
 #include <regex>
 #include <opencv2/imgproc.hpp>
 
@@ -161,10 +162,20 @@ DetectionEngineResult CharucoDetectorEngine::detect(
     long charucoInterpMs = std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count();
     result.stageTimingsMs[2] = charucoInterpMs;
 
-    // Stage 3: Subpixel corner refinement
+    // Stage 3: Subpixel corner refinement + measured per-corner precision
+    // Precision = 1/(1 + ||Δ||) where Δ is the cornerSubPix displacement (px).
+    // Never assign a constant — blurrier / unstable corners move more ⇒ lower score.
+    result.cornerPrecisions.assign(charucoCornersVec.size(), 0.0f);
     if (!charucoCornersVec.empty()) {
+        std::vector<cv::Point2f> beforeRefine = charucoCornersVec;
         cv::TermCriteria criteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 30, 0.01);
         cv::cornerSubPix(processedGray, charucoCornersVec, cv::Size(5, 5), cv::Size(-1, -1), criteria);
+        for (size_t i = 0; i < charucoCornersVec.size(); ++i) {
+            float dx = charucoCornersVec[i].x - beforeRefine[i].x;
+            float dy = charucoCornersVec[i].y - beforeRefine[i].y;
+            float displacement = std::sqrt(dx * dx + dy * dy);
+            result.cornerPrecisions[i] = 1.0f / (1.0f + displacement);
+        }
     }
 
     auto t4 = std::chrono::high_resolution_clock::now();
@@ -195,7 +206,6 @@ DetectionEngineResult CharucoDetectorEngine::detect(
     result.markerIds = markerIdsVec;
     result.charucoIds = charucoIdsVec;
     result.charucoCorners = charucoCornersVec;
-    result.cornerPrecisions.assign(charucoCornersVec.size(), 1.0f);
     result.markerOutlines = markerCorners;
     result.detectionConfidence = val.confidence;
     result.rejectedReason = val.rejectionReason;

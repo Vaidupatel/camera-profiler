@@ -6,10 +6,13 @@ import androidx.camera.core.Preview
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.openprofiler.camera.CameraIntrinsicsProvider
 import com.openprofiler.camera.CameraState
 import com.openprofiler.common.util.DispatcherProvider
 import com.openprofiler.common.util.Logger
 import com.openprofiler.domain.model.DetectionResult
+import com.openprofiler.domain.model.IntrinsicsSource
+import com.openprofiler.domain.model.QualityMetricStatus
 import com.openprofiler.domain.model.QualityResult
 import com.openprofiler.domain.repository.CameraRepository
 import com.openprofiler.domain.repository.CameraSessionToken
@@ -25,6 +28,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 
 private const val TAG = "CalibrationViewModel"
@@ -58,6 +62,7 @@ class CalibrationViewModel @Inject constructor(
     private val evaluateQualityUseCase: EvaluateQualityUseCase,
     private val detectionRepository: DetectionRepository,
     private val qualityRepository: QualityRepository,
+    private val cameraIntrinsicsProvider: CameraIntrinsicsProvider,
     private val dispatcherProvider: DispatcherProvider,
 ) : ViewModel(), ImageAnalysis.Analyzer {
 
@@ -66,6 +71,8 @@ class CalibrationViewModel @Inject constructor(
 
     private val isProcessingFrame = AtomicBoolean(false)
     private val framesAnalyzed = AtomicLong(0)
+    private val seedIntrinsics =
+        AtomicReference<Pair<Pair<Int, Int>, com.openprofiler.domain.model.CameraIntrinsics?>?>(null)
 
     @Volatile
     private var sessionToken: CameraSessionToken = CameraSessionToken.None
@@ -93,7 +100,13 @@ class CalibrationViewModel @Inject constructor(
 
         viewModelScope.launch(dispatcherProvider.default) {
             try {
-                val detection = detectBoardUseCase(imageProxy)
+                val seed = resolveSeedIntrinsics(imageProxy.width, imageProxy.height)
+                val detection = detectBoardUseCase(
+                    imageProxy = imageProxy,
+                    cameraMatrix = seed?.cameraMatrix,
+                    distCoeffs = seed?.distCoeffs,
+                    intrinsicsSource = seed?.source ?: IntrinsicsSource.UNAVAILABLE,
+                )
                 val boardConfig = detectionRepository.getBoardConfig()
                 val quality = evaluateQualityUseCase(
                     imageProxy = imageProxy,
@@ -106,15 +119,16 @@ class CalibrationViewModel @Inject constructor(
                     Logger.d(
                         TAG,
                         "Frame analyzed count=$count detected=${detection.boardDetected} " +
-                            "qualityAccepted=${quality.summary.isAccepted} " +
-                            "detMs=${detection.processingTimeMs} qMs=${quality.processingTimeMs}"
+                            "markers=${detection.markerCount} corners=${detection.charucoCornerCount} " +
+                            "qualityAccepted=${quality.summary.isAccepted} fails=${quality.summary.failCount} " +
+                            "detMs=${detection.processingTimeMs} qMs=${quality.processingTimeMs} " +
+                            "seed=${seed?.seedMethod ?: "none"} " +
+                            "observedBBox=${detection.observedBoundingBox?.size ?: 0}"
                     )
+                    if (!quality.summary.isAccepted) {
+                        logFailingQualityMetrics(quality, detection, count)
+                    }
                 }
-                Logger.d(
-                    TAG,
-                    "Detection result received boardDetected=${detection.boardDetected}; " +
-                        "quality accepted=${quality.summary.isAccepted}"
-                )
 
                 _uiState.update {
                     it.copy(
@@ -159,6 +173,93 @@ class CalibrationViewModel @Inject constructor(
         stopCamera()
         qualityRepository.resetMotionState()
         super.onCleared()
+    }
+
+    /**
+     * Resolves factory seed K/D for this analysis resolution.
+     * Never invents a heuristic when the provider returns null.
+     */
+    private fun resolveSeedIntrinsics(
+        width: Int,
+        height: Int,
+    ): com.openprofiler.domain.model.CameraIntrinsics? {
+        val sizeKey = width to height
+        seedIntrinsics.get()?.let { (cachedSize, cachedIntrinsics) ->
+            if (cachedSize == sizeKey) return cachedIntrinsics
+        }
+        val resolved = cameraIntrinsicsProvider.getSeedIntrinsics(
+            cameraId = null,
+            imageWidthPx = width,
+            imageHeightPx = height,
+        )
+        seedIntrinsics.set(sizeKey to resolved)
+        if (resolved == null) {
+            Logger.w(
+                TAG,
+                "No device-reported seed intrinsics for ${width}x${height}; " +
+                    "pose estimation will be skipped (null over guess)"
+            )
+        } else {
+            Logger.i(
+                TAG,
+                "Using seed intrinsics source=${resolved.source} method=${resolved.seedMethod}"
+            )
+        }
+        return resolved
+    }
+
+    private fun logFailingQualityMetrics(
+        quality: QualityResult,
+        detection: DetectionResult,
+        frameCount: Long,
+    ) {
+        val fails = quality.metrics.filter { it.status == QualityMetricStatus.FAIL }
+        for (m in fails) {
+            Logger.d(
+                TAG,
+                "QUALITY_FAIL frame=$frameCount id=${m.id} value=${m.value} " +
+                    "threshold=${m.threshold} reason=${m.reason} secondary=${m.secondaryValues}"
+            )
+        }
+        // Coverage / corner distribution for root-cause without guessing thresholds.
+        val box = detection.observedBoundingBox
+        if (box != null && box.size >= 4 && quality.frameWidthPx > 0 && quality.frameHeightPx > 0) {
+            val minX = box.minOf { it.x }
+            val maxX = box.maxOf { it.x }
+            val minY = box.minOf { it.y }
+            val maxY = box.maxOf { it.y }
+            val wPct = (maxX - minX) / quality.frameWidthPx * 100.0
+            val hPct = (maxY - minY) / quality.frameHeightPx * 100.0
+            val aPct = (maxX - minX) * (maxY - minY) /
+                (quality.frameWidthPx.toDouble() * quality.frameHeightPx) * 100.0
+            Logger.d(
+                TAG,
+                "QUALITY_DIAG coverage frame=${quality.frameWidthPx}x${quality.frameHeightPx} " +
+                    "observedBox=[${minX},${minY}]-[${maxX},${maxY}] " +
+                    "widthPct=$wPct heightPct=$hPct areaPct=$aPct"
+            )
+        } else {
+            Logger.d(
+                TAG,
+                "QUALITY_DIAG coverage observedBoundingBox=" +
+                    "${box?.size ?: "null"} (unavailable for TARGET_COVERAGE)"
+            )
+        }
+        val precisions = detection.cornerCoordinates.map { it.subpixelPrecision }
+        if (precisions.isNotEmpty()) {
+            val sorted = precisions.sorted()
+            val avg = precisions.average()
+            val p50 = sorted[sorted.size / 2]
+            val p10 = sorted[(sorted.size * 0.1).toInt().coerceAtMost(sorted.lastIndex)]
+            Logger.d(
+                TAG,
+                "QUALITY_DIAG cornerPrecision n=${precisions.size} avg=$avg " +
+                    "min=${sorted.first()} p10=$p10 p50=$p50 max=${sorted.last()} " +
+                    "poseSource=${detection.boardPose?.intrinsicsSource}"
+            )
+        } else {
+            Logger.d(TAG, "QUALITY_DIAG cornerPrecision empty")
+        }
     }
 
     private fun buildTargetStatus(detection: DetectionResult): String {

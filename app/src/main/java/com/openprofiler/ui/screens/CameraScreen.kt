@@ -24,12 +24,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.openprofiler.common.util.Logger
 import com.openprofiler.ui.components.CameraPreview
 import com.openprofiler.ui.components.DetectionOverlay
+import com.openprofiler.ui.util.rememberCameraLifecycleOwner
 import com.openprofiler.ui.viewmodel.CameraViewModel
 
 private const val TAG = "CameraScreen"
@@ -41,6 +41,9 @@ private const val TAG = "CameraScreen"
  * [CameraViewModel] acquires a [com.openprofiler.domain.repository.CameraSessionToken] on
  * start and releases only that token on dispose. If CalibrationScreen has already started a
  * newer session, this dispose stop is a deterministic no-op on the shared repository.
+ *
+ * CameraX is bound to the host [androidx.activity.ComponentActivity] lifecycle (not the
+ * NavBackStackEntry) so navigation between camera screens can reuse the bound use-case graph.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +52,7 @@ fun CameraScreen(
     onStartCalibration: () -> Unit = {},
     onSettings: () -> Unit = {},
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = rememberCameraLifecycleOwner()
     val uiState by viewModel.uiState.collectAsState()
 
     DisposableEffect(Unit) {

@@ -17,6 +17,11 @@ data class BoardAxesOverlay(
 
 /**
  * Result of calibration target detection on a camera frame.
+ *
+ * @property boundingBox Pose-reprojected board outline (depends on K/D). For UI axes overlay only —
+ *   never use for TARGET_COVERAGE gating.
+ * @property observedBoundingBox Axis-aligned box from [cornerCoordinates] min/max in image space.
+ *   Independent of intrinsics; used for TARGET_COVERAGE.
  */
 data class DetectionResult(
     val boardDetected: Boolean,
@@ -33,5 +38,6 @@ data class DetectionResult(
     val detectedMarkers: List<DetectedMarker> = emptyList(),
     val boardAxes: BoardAxesOverlay? = null,
     val boundingBox: List<Point2D>? = null,
+    val observedBoundingBox: List<Point2D>? = null,
     val statistics: DetectionStatistics = DetectionStatistics(totalTimeMs = processingTimeMs)
 )

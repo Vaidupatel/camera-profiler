@@ -8,6 +8,8 @@ import com.openprofiler.domain.model.DetectedCorner
 import com.openprofiler.domain.model.DetectedMarker
 import com.openprofiler.domain.model.DetectionResult
 import com.openprofiler.domain.model.DetectionStatistics
+import com.openprofiler.domain.model.IntrinsicsSource
+import com.openprofiler.domain.model.ObservedBoundingBox
 import com.openprofiler.domain.model.Point2D
 import com.openprofiler.domain.repository.DetectionRepository
 import com.openprofiler.native_bridge.NativeDetectionEngine
@@ -44,7 +46,8 @@ class DetectionRepositoryImpl @Inject constructor(
     override suspend fun detectBoard(
         imageProxy: ImageProxy,
         cameraMatrix: DoubleArray?,
-        distCoeffs: DoubleArray?
+        distCoeffs: DoubleArray?,
+        intrinsicsSource: IntrinsicsSource,
     ): DetectionResult = withContext(Dispatchers.Default) {
         val startTime = System.currentTimeMillis()
 
@@ -95,7 +98,11 @@ class DetectionRepositoryImpl @Inject constructor(
                 return@withContext createFailureResult("Native detection returned null", startTime)
             }
 
-            mapNativeResultToDomain(nativeResult, System.currentTimeMillis() - startTime)
+            mapNativeResultToDomain(
+                nativeResult,
+                System.currentTimeMillis() - startTime,
+                intrinsicsSource,
+            )
         } catch (e: Exception) {
             Timber.e(e, "Error executing detectBoard")
             createFailureResult(e.message ?: "Unknown detection error", startTime)
@@ -111,7 +118,8 @@ class DetectionRepositoryImpl @Inject constructor(
 
     private fun mapNativeResultToDomain(
         native: NativeDetectionResult,
-        elapsedTimeMs: Long
+        elapsedTimeMs: Long,
+        intrinsicsSource: IntrinsicsSource,
     ): DetectionResult {
         val corners = mutableListOf<DetectedCorner>()
         for (i in native.charucoIds.indices) {
@@ -121,7 +129,12 @@ class DetectionRepositoryImpl @Inject constructor(
                         id = native.charucoIds[i],
                         x = native.cornerX[i],
                         y = native.cornerY[i],
-                        subpixelPrecision = if (i < native.cornerPrecision.size) native.cornerPrecision[i] else 1.0f
+                        // Missing precision means unmeasured — never fabricate 1.0.
+                        subpixelPrecision = if (i < native.cornerPrecision.size) {
+                            native.cornerPrecision[i]
+                        } else {
+                            0.0f
+                        }
                     )
                 )
             }
@@ -145,7 +158,11 @@ class DetectionRepositoryImpl @Inject constructor(
         }
 
         val pose = if (native.rvec != null && native.tvec != null) {
-            BoardPose(rvec = native.rvec, tvec = native.tvec)
+            BoardPose(
+                rvec = native.rvec,
+                tvec = native.tvec,
+                intrinsicsSource = intrinsicsSource,
+            )
         } else null
 
         val axes = native.boardAxesCoords?.let { coords ->
@@ -169,6 +186,8 @@ class DetectionRepositoryImpl @Inject constructor(
                 )
             } else null
         }
+
+        val observedBoundingBox = ObservedBoundingBox.fromCorners(corners)
 
         val timings = native.stageTimingsMs
         val stats = if (timings != null && timings.size >= 5) {
@@ -198,6 +217,7 @@ class DetectionRepositoryImpl @Inject constructor(
             detectedMarkers = markers,
             boardAxes = axes,
             boundingBox = boundingBox,
+            observedBoundingBox = observedBoundingBox,
             statistics = stats
         )
     }

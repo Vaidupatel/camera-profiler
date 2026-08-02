@@ -1,7 +1,6 @@
 package com.openprofiler.camera
 
 import android.content.Context
-import androidx.annotation.VisibleForTesting
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
@@ -41,21 +40,11 @@ private const val TAG = "CameraRepository"
  * identity equality, mirroring the session-token guard on start/stop.
  */
 @Singleton
-class CameraRepositoryImpl
-@VisibleForTesting
-internal constructor(
-    private val context: Context,
+class CameraRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val cameraProviderClient: CameraProviderClient,
-    useCaseBinder: CameraUseCaseBinder,
+    private val useCaseBinder: CameraUseCaseBinder,
 ) : CameraRepository {
-
-    @Inject
-    constructor(
-        @ApplicationContext context: Context,
-        cameraProviderClient: CameraProviderClient,
-    ) : this(context, cameraProviderClient, DefaultCameraUseCaseBinder())
-
-    private val useCaseBinder: CameraUseCaseBinder = useCaseBinder
 
     private val _cameraState = MutableStateFlow(CameraState())
     override val cameraState: StateFlow<CameraState> = _cameraState.asStateFlow()
@@ -73,6 +62,9 @@ internal constructor(
     private var currentLifecycleOwner: LifecycleOwner? = null
     private var currentSurfaceProvider: Preview.SurfaceProvider? = null
     private var sessionActive: Boolean = false
+    private var boundLensFacing: Int? = null
+    private var boundLifecycleOwner: LifecycleOwner? = null
+    private var useCaseGraphBound: Boolean = false
 
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val framesReceived = AtomicLong(0)
@@ -134,6 +126,10 @@ internal constructor(
     /**
      * Must be called while holding [sessionLock].
      * Re-checks [expectedSession] so a late bind cannot overwrite a newer owner.
+     *
+     * When an identical use-case graph is already bound (same lens, same lifecycle owner,
+     * Preview/ImageCapture/ImageAnalysis present), only the Preview surface and analyzer
+     * are updated — no [ProcessCameraProvider.unbindAll].
      */
     private fun bindCameraUseCasesLocked(expectedSession: CameraSessionToken) {
         if (expectedSession != currentSession) {
@@ -155,9 +151,31 @@ internal constructor(
             return
         }
 
+        val lensFacing = _cameraState.value.lensFacing
+
+        if (canReuseBoundUseCases(lifecycleOwner, lensFacing)) {
+            Logger.i(
+                TAG,
+                "Reusing bound use cases (lens=$lensFacing) — " +
+                    "updating Preview surface / analyzer only, skip unbindAll"
+            )
+            previewUseCase?.setSurfaceProvider(surfaceProvider)
+            frameAnalyzer?.let { analyzer ->
+                imageAnalysisUseCase?.let { analysis ->
+                    analysis.clearAnalyzer()
+                    analysis.setAnalyzer(analysisExecutor, createLoggingAnalyzer(analyzer))
+                }
+            }
+            sessionActive = true
+            useCaseGraphBound = true
+            _cameraState.update {
+                it.copy(isStreaming = true, error = null)
+            }
+            return
+        }
+
         try {
             Logger.i(TAG, "Camera unbound (preparing rebind) lifecycleState=$lifecycleState")
-            // Binder unbinds before rebinding; mark inactive until bind succeeds.
             sessionActive = false
             Logger.i(TAG, "Preview detached / ImageAnalysis stopped")
 
@@ -165,7 +183,7 @@ internal constructor(
                 provider = provider,
                 lifecycleOwner = lifecycleOwner,
                 surfaceProvider = surfaceProvider,
-                lensFacing = _cameraState.value.lensFacing,
+                lensFacing = lensFacing,
                 analyzer = frameAnalyzer?.let { createLoggingAnalyzer(it) },
                 analysisExecutor = analysisExecutor,
             )
@@ -173,6 +191,9 @@ internal constructor(
             previewUseCase = bound.preview
             imageCaptureUseCase = bound.imageCapture
             imageAnalysisUseCase = bound.imageAnalysis
+            boundLensFacing = lensFacing
+            boundLifecycleOwner = lifecycleOwner
+            useCaseGraphBound = true
 
             if (frameAnalyzer != null) {
                 Logger.i(TAG, "ImageAnalysis started with registered analyzer")
@@ -191,11 +212,15 @@ internal constructor(
                 previewUseCase = null
                 imageCaptureUseCase = null
                 imageAnalysisUseCase = null
+                boundLensFacing = null
+                boundLifecycleOwner = null
+                useCaseGraphBound = false
                 sessionActive = false
                 return
             }
 
             sessionActive = true
+            useCaseGraphBound = true
             _cameraState.update {
                 it.copy(
                     isStreaming = true,
@@ -206,15 +231,32 @@ internal constructor(
             Logger.i(
                 TAG,
                 "Camera bound successfully session=${expectedSession.id} " +
-                    "lens=${_cameraState.value.lensFacing} lifecycleState=$lifecycleState"
+                    "lens=$lensFacing lifecycleState=$lifecycleState"
             )
         } catch (e: Exception) {
             sessionActive = false
+            boundLensFacing = null
+            boundLifecycleOwner = null
+            useCaseGraphBound = false
             Logger.e(TAG, "Use case binding failed", e)
             _cameraState.update {
                 it.copy(error = e.localizedMessage ?: "Binding camera use cases failed")
             }
         }
+    }
+
+    /**
+     * True when Preview+Capture+Analysis are already bound for the same lens and lifecycle,
+     * so only surface/analyzer updates are required.
+     */
+    private fun canReuseBoundUseCases(
+        lifecycleOwner: LifecycleOwner,
+        lensFacing: Int,
+    ): Boolean {
+        return sessionActive &&
+            useCaseGraphBound &&
+            boundLensFacing == lensFacing &&
+            boundLifecycleOwner === lifecycleOwner
     }
 
     private fun createLoggingAnalyzer(
@@ -318,6 +360,9 @@ internal constructor(
             imageAnalysisUseCase = null
             currentSurfaceProvider = null
             currentLifecycleOwner = null
+            boundLensFacing = null
+            boundLifecycleOwner = null
+            useCaseGraphBound = false
             sessionActive = false
             currentSession = CameraSessionToken.None
             _cameraState.update { it.copy(isStreaming = false) }

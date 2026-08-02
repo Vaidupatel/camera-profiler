@@ -4,10 +4,12 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.lifecycle.LifecycleOwner
 import com.google.common.truth.Truth.assertThat
+import com.openprofiler.camera.CameraIntrinsicsProvider
 import com.openprofiler.camera.CameraState
 import com.openprofiler.common.util.DispatcherProvider
 import com.openprofiler.domain.model.BoardConfig
 import com.openprofiler.domain.model.DetectionResult
+import com.openprofiler.domain.model.IntrinsicsSource
 import com.openprofiler.domain.model.QualityMetric
 import com.openprofiler.domain.model.QualityMetricId
 import com.openprofiler.domain.model.QualityMetricStatus
@@ -57,6 +59,7 @@ class CalibrationViewModelTest {
     private val evaluateQualityUseCase: EvaluateQualityUseCase = mockk(relaxed = true)
     private val detectionRepository: DetectionRepository = mockk(relaxed = true)
     private val qualityRepository: QualityRepository = mockk(relaxed = true)
+    private val cameraIntrinsicsProvider: CameraIntrinsicsProvider = mockk(relaxed = true)
     private val cameraStateFlow = MutableStateFlow(CameraState())
 
     @Before
@@ -85,6 +88,7 @@ class CalibrationViewModelTest {
         evaluateQualityUseCase,
         detectionRepository,
         qualityRepository,
+        cameraIntrinsicsProvider,
         dispatcherProvider
     )
 
@@ -156,7 +160,10 @@ class CalibrationViewModelTest {
             frameHeightPx = 1080
         )
 
-        coEvery { detectBoardUseCase(imageProxy) } returns detection
+        every { cameraIntrinsicsProvider.getSeedIntrinsics(any(), any(), any()) } returns null
+        coEvery {
+            detectBoardUseCase(imageProxy, null, null, IntrinsicsSource.UNAVAILABLE)
+        } returns detection
         coEvery {
             evaluateQualityUseCase(imageProxy, detection, any())
         } returns quality
@@ -171,7 +178,7 @@ class CalibrationViewModelTest {
         assertThat(state.targetStatusText).contains("Target locked")
         assertThat(state.qualityStatusText).contains("PASS")
         verify { imageProxy.close() }
-        coVerify { detectBoardUseCase(imageProxy) }
+        coVerify { detectBoardUseCase(imageProxy, null, null, IntrinsicsSource.UNAVAILABLE) }
         coVerify { evaluateQualityUseCase(imageProxy, detection, any()) }
     }
 
@@ -209,7 +216,10 @@ class CalibrationViewModelTest {
             frameHeightPx = 1080
         )
 
-        coEvery { detectBoardUseCase(imageProxy) } returns detection
+        every { cameraIntrinsicsProvider.getSeedIntrinsics(any(), any(), any()) } returns null
+        coEvery {
+            detectBoardUseCase(imageProxy, null, null, IntrinsicsSource.UNAVAILABLE)
+        } returns detection
         coEvery { evaluateQualityUseCase(imageProxy, detection, any()) } returns quality
 
         viewModel.analyze(imageProxy)

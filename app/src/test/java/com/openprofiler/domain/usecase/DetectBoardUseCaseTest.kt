@@ -3,8 +3,10 @@ package com.openprofiler.domain.usecase
 import androidx.camera.core.ImageProxy
 import com.google.common.truth.Truth.assertThat
 import com.openprofiler.domain.model.DetectionResult
+import com.openprofiler.domain.model.IntrinsicsSource
 import com.openprofiler.domain.repository.DetectionRepository
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -30,7 +32,14 @@ class DetectBoardUseCaseTest {
             processingTimeMs = 15L
         )
 
-        coEvery { detectionRepository.detectBoard(mockImageProxy, null, null) } returns expectedResult
+        coEvery {
+            detectionRepository.detectBoard(
+                mockImageProxy,
+                null,
+                null,
+                IntrinsicsSource.UNAVAILABLE
+            )
+        } returns expectedResult
 
         val result = useCase(mockImageProxy)
 
@@ -41,7 +50,7 @@ class DetectBoardUseCaseTest {
     }
 
     @Test
-    fun `invoke passes camera matrix and distortion parameters to repository`() = runTest {
+    fun `invoke passes camera matrix distortion and provenance to repository`() = runTest {
         val mockImageProxy: ImageProxy = mockk()
         val cameraMatrix = doubleArrayOf(1000.0, 0.0, 500.0, 0.0, 1000.0, 500.0, 0.0, 0.0, 1.0)
         val distCoeffs = doubleArrayOf(0.1, -0.05, 0.0, 0.0, 0.0)
@@ -60,11 +69,29 @@ class DetectBoardUseCaseTest {
         )
 
         coEvery {
-            detectionRepository.detectBoard(mockImageProxy, cameraMatrix, distCoeffs)
+            detectionRepository.detectBoard(
+                mockImageProxy,
+                cameraMatrix,
+                distCoeffs,
+                IntrinsicsSource.FACTORY_ESTIMATE
+            )
         } returns expectedResult
 
-        val result = useCase(mockImageProxy, cameraMatrix, distCoeffs)
+        val result = useCase(
+            mockImageProxy,
+            cameraMatrix,
+            distCoeffs,
+            IntrinsicsSource.FACTORY_ESTIMATE,
+        )
 
         assertThat(result.boardDetected).isTrue()
+        coVerify {
+            detectionRepository.detectBoard(
+                mockImageProxy,
+                cameraMatrix,
+                distCoeffs,
+                IntrinsicsSource.FACTORY_ESTIMATE
+            )
+        }
     }
 }

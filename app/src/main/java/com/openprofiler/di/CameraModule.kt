@@ -1,6 +1,8 @@
 package com.openprofiler.di
 
 import com.openprofiler.calibration.CalibrationRepositoryImpl
+import com.openprofiler.camera.CameraIntrinsicsProvider
+import com.openprofiler.camera.CameraIntrinsicsProviderImpl
 import com.openprofiler.camera.CameraProviderClient
 import com.openprofiler.camera.CameraRepositoryImpl
 import com.openprofiler.camera.ProcessCameraProviderClient
@@ -30,6 +32,12 @@ abstract class CameraModule {
     abstract fun bindCameraProviderClient(
         impl: ProcessCameraProviderClient,
     ): CameraProviderClient
+
+    @Binds
+    @Singleton
+    abstract fun bindCameraIntrinsicsProvider(
+        impl: CameraIntrinsicsProviderImpl,
+    ): CameraIntrinsicsProvider
 
     @Binds
     @Singleton

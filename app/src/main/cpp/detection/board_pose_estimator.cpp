@@ -18,20 +18,26 @@ PoseEstimationResult BoardPoseEstimator::estimatePose(
         return res;
     }
 
-    // Construct intrinsic camera matrix if not provided
-    cv::Mat K = inCameraMatrix.clone();
+    // Scientific integrity: never fabricate K. Callers must supply device-reported
+    // factory seed intrinsics (or calibrated K). Empty/invalid K ⇒ no pose.
+    cv::Mat K = inCameraMatrix.empty() ? cv::Mat() : inCameraMatrix.clone();
+    if (K.empty() || K.rows != 3 || K.cols != 3 || K.type() != CV_64F) {
+        if (!K.empty() && K.type() != CV_64F) {
+            K.convertTo(K, CV_64F);
+        }
+    }
     if (K.empty() || K.rows != 3 || K.cols != 3) {
-        double focal = 0.8 * std::max(imgWidth, imgHeight);
-        K = (cv::Mat_<double>(3, 3) <<
-            focal, 0.0, imgWidth / 2.0,
-            0.0, focal, imgHeight / 2.0,
-            0.0, 0.0, 1.0);
+        res.success = false;
+        return res;
     }
 
-    cv::Mat D = inDistCoeffs.clone();
-    if (D.empty()) {
-        D = cv::Mat::zeros(5, 1, CV_64F);
+    cv::Mat D = inDistCoeffs.empty() ? cv::Mat::zeros(5, 1, CV_64F) : inDistCoeffs.clone();
+    if (D.type() != CV_64F) {
+        D.convertTo(D, CV_64F);
     }
+
+    (void)imgWidth;
+    (void)imgHeight;
 
     std::vector<cv::Point3f> objPoints;
     std::vector<cv::Point2f> imgPoints;
@@ -56,7 +62,7 @@ PoseEstimationResult BoardPoseEstimator::estimatePose(
     res.rvec = rvec;
     res.tvec = tvec;
 
-    // Project 3D Board Axes (Origin, X, Y, Z)
+    // Project 3D Board Axes (Origin, X, Y, Z) — UI overlay only
     float axisLength = board->getSquareLength() * 2.0f; // 2 square units
     std::vector<cv::Point3f> axisPoints3D = {
         cv::Point3f(0, 0, 0),
@@ -67,7 +73,7 @@ PoseEstimationResult BoardPoseEstimator::estimatePose(
 
     cv::projectPoints(axisPoints3D, rvec, tvec, K, D, res.axes2D);
 
-    // Project Board 2D Bounding Box (4 outer corners)
+    // Pose-reprojected board outline — UI only; TARGET_COVERAGE uses observed corners.
     cv::Size boardGrid = board->getChessboardSize();
     float totalW = boardGrid.width * board->getSquareLength();
     float totalH = boardGrid.height * board->getSquareLength();

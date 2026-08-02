@@ -103,6 +103,12 @@ class QualityEngineThresholdLogicTest {
             detectionConfidence = 0.95f,
             processingTimeMs = 10L,
             boundingBox = listOf(
+                Point2D(50f, 50f),
+                Point2D(900f, 50f),
+                Point2D(900f, 900f),
+                Point2D(50f, 900f)
+            ),
+            observedBoundingBox = listOf(
                 Point2D(200f, 200f),
                 Point2D(800f, 200f),
                 Point2D(800f, 700f),

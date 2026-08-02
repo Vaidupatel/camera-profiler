@@ -29,10 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.openprofiler.common.util.Logger
 import com.openprofiler.ui.components.CameraPreview
 import com.openprofiler.ui.components.DetectionOverlay
+import com.openprofiler.ui.util.rememberCameraLifecycleOwner
 import com.openprofiler.ui.viewmodel.CalibrationViewModel
 
 private const val TAG = "CalibrationScreen"
@@ -46,6 +46,9 @@ private const val TAG = "CalibrationScreen"
  *
  * Overlay draws above preview; it never replaces PreviewView.
  * Coverage UI remains a Phase-6 placeholder (always 0%).
+ *
+ * CameraX binds to the host Activity lifecycle so a Camera→Calibration navigation
+ * reuses the use-case graph instead of tearing down CameraDevice.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +57,7 @@ fun CalibrationScreen(
     onFinishCalibration: () -> Unit = {},
     onCancel: () -> Unit = {},
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = rememberCameraLifecycleOwner()
     val uiState by viewModel.uiState.collectAsState()
 
     DisposableEffect(Unit) {

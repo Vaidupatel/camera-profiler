@@ -2,6 +2,7 @@ package com.openprofiler.quality
 
 import com.openprofiler.domain.model.BoardConfig
 import com.openprofiler.domain.model.DetectionResult
+import com.openprofiler.domain.model.IntrinsicsSource
 import com.openprofiler.domain.model.Point2D
 import com.openprofiler.domain.model.QualityMetric
 import com.openprofiler.domain.model.QualityMetricStatus
@@ -231,7 +232,7 @@ class QualityEngine @Inject constructor(
         frameH: Int,
         t: QualityThresholds
     ): List<QualityMetric> {
-        val coverage = measureCoverage(detection?.boundingBox, frameW, frameH)
+        val coverage = measureCoverage(detection?.observedBoundingBox, frameW, frameH)
         val coverageMetric = QualityMetricRules.targetCoverage(
             coverage?.widthPercent,
             coverage?.heightPercent,
@@ -269,7 +270,8 @@ class QualityEngine @Inject constructor(
                 measured.rollDegrees,
                 measured.distanceMm,
                 measured.frontalScore,
-                t
+                t,
+                intrinsicsSource = pose.intrinsicsSource,
             )
         }
 
