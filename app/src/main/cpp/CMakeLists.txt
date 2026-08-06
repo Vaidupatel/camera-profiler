@@ -22,11 +22,13 @@ add_library(
     jni/native_bridge.cpp
     jni/detection_jni.cpp
     jni/quality_jni.cpp
+    jni/calibration_jni.cpp
     common/image_buffer_utils.cpp
     detection/corner_validator.cpp
     detection/board_pose_estimator.cpp
     detection/charuco_detector_engine.cpp
     quality/image_quality_evaluator.cpp
+    calibration/calibration_solver.cpp
 )
 
 target_include_directories(
@@ -35,6 +37,7 @@ target_include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/common
     ${CMAKE_CURRENT_SOURCE_DIR}/detection
     ${CMAKE_CURRENT_SOURCE_DIR}/quality
+    ${CMAKE_CURRENT_SOURCE_DIR}/calibration
     ${CMAKE_CURRENT_SOURCE_DIR}/opencv/sdk/native/jni/include
 )
 

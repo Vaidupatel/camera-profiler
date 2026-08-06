@@ -9,17 +9,24 @@ import androidx.lifecycle.viewModelScope
 import com.openprofiler.camera.CameraIntrinsicsProvider
 import com.openprofiler.camera.CameraState
 import com.openprofiler.common.util.DispatcherProvider
+import com.openprofiler.common.util.ImageDimensionUtils
 import com.openprofiler.common.util.Logger
+import com.openprofiler.domain.model.CoverageData
+import com.openprofiler.domain.model.CoverageGuidance
 import com.openprofiler.domain.model.DetectionResult
 import com.openprofiler.domain.model.IntrinsicsSource
 import com.openprofiler.domain.model.QualityMetricStatus
 import com.openprofiler.domain.model.QualityResult
+import com.openprofiler.domain.repository.CalibrationRepository
 import com.openprofiler.domain.repository.CameraRepository
 import com.openprofiler.domain.repository.CameraSessionToken
+import com.openprofiler.domain.repository.CoverageRepository
 import com.openprofiler.domain.repository.DetectionRepository
 import com.openprofiler.domain.repository.QualityRepository
 import com.openprofiler.domain.usecase.DetectBoardUseCase
+import com.openprofiler.domain.usecase.EvaluateCoverageUseCase
 import com.openprofiler.domain.usecase.EvaluateQualityUseCase
+import com.openprofiler.domain.usecase.StartCalibrationUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,14 +42,14 @@ private const val TAG = "CalibrationViewModel"
 
 /**
  * Immutable UI state for the calibration session screen.
- *
- * Coverage counters remain placeholders until Phase 6 — this ViewModel only
- * owns camera session, detection, and quality evaluation (Phase 4/5 integration).
  */
 data class CalibrationUiState(
     val cameraState: CameraState = CameraState(),
     val detectionResult: DetectionResult? = null,
     val qualityResult: QualityResult? = null,
+    val coverageData: CoverageData = CoverageData(),
+    val guidance: CoverageGuidance? = null,
+    val minAcceptedFrames: Int = 0,
     val isDetecting: Boolean = false,
     val targetStatusText: String = "Searching...",
     val qualityStatusText: String = "Waiting for frames",
@@ -60,8 +67,12 @@ class CalibrationViewModel @Inject constructor(
     private val cameraRepository: CameraRepository,
     private val detectBoardUseCase: DetectBoardUseCase,
     private val evaluateQualityUseCase: EvaluateQualityUseCase,
+    private val evaluateCoverageUseCase: EvaluateCoverageUseCase,
+    private val startCalibrationUseCase: StartCalibrationUseCase,
     private val detectionRepository: DetectionRepository,
     private val qualityRepository: QualityRepository,
+    private val coverageRepository: CoverageRepository,
+    private val calibrationRepository: CalibrationRepository,
     private val cameraIntrinsicsProvider: CameraIntrinsicsProvider,
     private val dispatcherProvider: DispatcherProvider,
 ) : ViewModel(), ImageAnalysis.Analyzer {
@@ -86,7 +97,11 @@ class CalibrationViewModel @Inject constructor(
         viewModelScope.launch(dispatcherProvider.io) {
             detectionRepository.initialize()
             qualityRepository.initialize()
-            Logger.i(TAG, "Detection and Quality engines initialized for calibration session")
+            coverageRepository.initialize()
+            startCalibrationUseCase()
+            val thresholds = coverageRepository.getThresholds()
+            _uiState.update { it.copy(minAcceptedFrames = thresholds.minAcceptedFrames) }
+            Logger.i(TAG, "Detection, Quality, and Coverage engines initialized for calibration session")
         }
         cameraRepository.setFrameAnalyzer(this)
         Logger.i(TAG, "Calibration session ViewModel ready; analyzer registered")
@@ -100,7 +115,11 @@ class CalibrationViewModel @Inject constructor(
 
         viewModelScope.launch(dispatcherProvider.default) {
             try {
-                val seed = resolveSeedIntrinsics(imageProxy.width, imageProxy.height)
+                val rotationDegrees = imageProxy.imageInfo.rotationDegrees
+                val rotatedWidth = ImageDimensionUtils.rotatedWidth(imageProxy.width, imageProxy.height, rotationDegrees)
+                val rotatedHeight = ImageDimensionUtils.rotatedHeight(imageProxy.width, imageProxy.height, rotationDegrees)
+
+                val seed = resolveSeedIntrinsics(rotatedWidth, rotatedHeight)
                 val detection = detectBoardUseCase(
                     imageProxy = imageProxy,
                     cameraMatrix = seed?.cameraMatrix,
@@ -113,6 +132,39 @@ class CalibrationViewModel @Inject constructor(
                     detection = detection,
                     boardConfig = boardConfig
                 )
+
+                var coverageResult = coverageRepository.getCurrentCoverage()
+                var currentGuidance: CoverageGuidance? = null
+
+                if (quality.summary.isAccepted) {
+                    val coverageEval = evaluateCoverageUseCase(
+                        detection = detection,
+                        frameWidth = rotatedWidth,
+                        frameHeight = rotatedHeight
+                    )
+                    coverageResult = coverageEval.coverageData
+                    currentGuidance = coverageEval.guidance
+
+                    if (coverageEval.isAccepted) {
+                        // Accepted frame! Record point correspondences in the calibration corpus.
+                        boardConfig?.let { config ->
+                            calibrationRepository.addFrame(
+                                corners = detection.cornerCoordinates,
+                                boardConfig = config,
+                                width = rotatedWidth,
+                                height = rotatedHeight
+                            )
+                        }
+
+                        Logger.i(
+                            TAG,
+                            "FRAME_ACCEPTED frame=${framesAnalyzed.get()} delta=${coverageEval.coverageDelta} " +
+                                "totalScore=${coverageEval.diversityScore} acceptedCount=${coverageResult.acceptedFrameCount}"
+                        )
+                    } else {
+                        Logger.d(TAG, "FRAME_REJECTED_BY_COVERAGE: ${coverageEval.rejectReason}")
+                    }
+                }
 
                 val count = framesAnalyzed.incrementAndGet()
                 if (count == 1L || count % 30L == 0L) {
@@ -134,6 +186,8 @@ class CalibrationViewModel @Inject constructor(
                     it.copy(
                         detectionResult = detection,
                         qualityResult = quality,
+                        coverageData = coverageResult,
+                        guidance = currentGuidance,
                         isDetecting = detection.boardDetected,
                         targetStatusText = buildTargetStatus(detection),
                         qualityStatusText = buildQualityStatus(quality),

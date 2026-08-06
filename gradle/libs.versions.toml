@@ -21,11 +21,13 @@ espressoCore = "3.6.1"
 truth = "1.4.4"
 mockk = "1.13.13"
 turbine = "1.2.0"
+testRules = "1.6.1"
 
 [libraries]
 # AndroidX Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "testRules" }
 
 # Lifecycle
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }

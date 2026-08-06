@@ -17,10 +17,14 @@ import com.openprofiler.domain.model.QualityResult
 import com.openprofiler.domain.model.QualitySummary
 import com.openprofiler.domain.repository.CameraRepository
 import com.openprofiler.domain.repository.CameraSessionToken
+import com.openprofiler.domain.repository.CalibrationRepository
+import com.openprofiler.domain.repository.CoverageRepository
 import com.openprofiler.domain.repository.DetectionRepository
 import com.openprofiler.domain.repository.QualityRepository
 import com.openprofiler.domain.usecase.DetectBoardUseCase
+import com.openprofiler.domain.usecase.EvaluateCoverageUseCase
 import com.openprofiler.domain.usecase.EvaluateQualityUseCase
+import com.openprofiler.domain.usecase.StartCalibrationUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -57,8 +61,12 @@ class CalibrationViewModelTest {
     private val cameraRepository: CameraRepository = mockk(relaxed = true)
     private val detectBoardUseCase: DetectBoardUseCase = mockk(relaxed = true)
     private val evaluateQualityUseCase: EvaluateQualityUseCase = mockk(relaxed = true)
+    private val evaluateCoverageUseCase: EvaluateCoverageUseCase = mockk(relaxed = true)
+    private val startCalibrationUseCase: StartCalibrationUseCase = mockk(relaxed = true)
     private val detectionRepository: DetectionRepository = mockk(relaxed = true)
     private val qualityRepository: QualityRepository = mockk(relaxed = true)
+    private val coverageRepository: CoverageRepository = mockk(relaxed = true)
+    private val calibrationRepository: CalibrationRepository = mockk(relaxed = true)
     private val cameraIntrinsicsProvider: CameraIntrinsicsProvider = mockk(relaxed = true)
     private val cameraStateFlow = MutableStateFlow(CameraState())
 
@@ -68,6 +76,9 @@ class CalibrationViewModelTest {
         every { cameraRepository.cameraState } returns cameraStateFlow
         coEvery { detectionRepository.initialize() } returns Result.success(Unit)
         coEvery { qualityRepository.initialize() } returns Result.success(Unit)
+        coEvery { coverageRepository.initialize() } returns Result.success(Unit)
+        every { coverageRepository.getThresholds() } returns com.openprofiler.domain.model.CoverageThresholds()
+        coEvery { calibrationRepository.reset() } returns Unit
         every { detectionRepository.getBoardConfig() } returns BoardConfig(
             dictionaryName = "DICT_5X5_1000",
             squaresX = 9,
@@ -86,8 +97,12 @@ class CalibrationViewModelTest {
         cameraRepository,
         detectBoardUseCase,
         evaluateQualityUseCase,
+        evaluateCoverageUseCase,
+        startCalibrationUseCase,
         detectionRepository,
         qualityRepository,
+        coverageRepository,
+        calibrationRepository,
         cameraIntrinsicsProvider,
         dispatcherProvider
     )
@@ -227,6 +242,119 @@ class CalibrationViewModelTest {
 
         assertThat(viewModel.uiState.value.targetStatusText).contains("Searching")
         assertThat(viewModel.uiState.value.qualityStatusText).contains("FAIL")
+    }
+
+    @Test
+    fun analyze_callsCoverageUseCaseOnlyWhenQualityAccepted() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        val imageProxy = mockk<ImageProxy>(relaxed = true)
+        every { imageProxy.width } returns 1920
+        every { imageProxy.height } returns 1080
+        val detection = DetectionResult(
+            boardDetected = true,
+            dictionary = "DICT_4X4_50",
+            markerCount = 4,
+            charucoCornerCount = 4,
+            markerIds = listOf(0, 1, 2, 3),
+            charucoIds = listOf(0, 1, 2, 3),
+            cornerCoordinates = emptyList(),
+            boardPose = null,
+            detectionConfidence = 1.0f,
+            processingTimeMs = 10L
+        )
+        val qualityPass = QualityResult(
+            metrics = emptyList(),
+            summary = QualitySummary(isAccepted = true, overallScore = 1.0, passCount = 1, warningCount = 0, failCount = 0, primaryRejectReason = null),
+            processingTimeMs = 5L,
+            frameWidthPx = 1920, frameHeightPx = 1080
+        )
+        val qualityFail = QualityResult(
+            metrics = emptyList(),
+            summary = QualitySummary(isAccepted = false, overallScore = 0.0, passCount = 0, warningCount = 0, failCount = 1, primaryRejectReason = "Blur"),
+            processingTimeMs = 5L,
+            frameWidthPx = 1920, frameHeightPx = 1080
+        )
+
+        val coverageResult = com.openprofiler.domain.model.CoverageEvaluationResult(
+            isAccepted = true,
+            rejectReason = null,
+            coverageDelta = 5.0,
+            diversityScore = 10.0,
+            guidance = com.openprofiler.domain.model.CoverageGuidance.MOVE_LEFT,
+            remainingRequirements = emptyList(),
+            coverageData = com.openprofiler.domain.model.CoverageData(overallPercentage = 10.0, acceptedFrameCount = 1)
+        )
+
+        every { cameraIntrinsicsProvider.getSeedIntrinsics(any(), any(), any()) } returns null
+        coEvery { detectBoardUseCase(any(), any(), any(), any()) } returns detection
+        coEvery { evaluateCoverageUseCase(any(), any(), any()) } returns coverageResult
+
+        // Case 1: Quality PASS -> Coverage called
+        coEvery { evaluateQualityUseCase(any(), any(), any()) } returns qualityPass
+        viewModel.analyze(imageProxy)
+        advanceUntilIdle()
+        coVerify(exactly = 1) { evaluateCoverageUseCase(detection, 1920, 1080) }
+        assertThat(viewModel.uiState.value.coverageData.overallPercentage).isEqualTo(10.0)
+        assertThat(viewModel.uiState.value.guidance).isEqualTo(com.openprofiler.domain.model.CoverageGuidance.MOVE_LEFT)
+
+        // Case 2: Quality FAIL -> Coverage NOT called
+        coEvery { evaluateQualityUseCase(any(), any(), any()) } returns qualityFail
+        viewModel.analyze(imageProxy)
+        advanceUntilIdle()
+        coVerify(exactly = 1) { evaluateCoverageUseCase(any(), any(), any()) } // Still 1 from previous call
+    }
+
+    @Test
+    fun analyze_usesRotatedDimensionsForPortrait() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        val imageProxy = mockk<ImageProxy>(relaxed = true)
+        every { imageProxy.width } returns 1920
+        every { imageProxy.height } returns 1080
+        every { imageProxy.imageInfo.rotationDegrees } returns 90
+
+        val detection = DetectionResult(
+            boardDetected = true,
+            dictionary = "DICT_5X5_1000",
+            markerCount = 4,
+            charucoCornerCount = 4,
+            markerIds = listOf(0, 1, 2, 3),
+            charucoIds = listOf(0, 1, 2, 3),
+            cornerCoordinates = emptyList(),
+            boardPose = null,
+            detectionConfidence = 1.0f,
+            processingTimeMs = 10L
+        )
+        val quality = QualityResult(
+            metrics = emptyList(),
+            summary = QualitySummary(isAccepted = true, overallScore = 1.0, passCount = 1, warningCount = 0, failCount = 0, primaryRejectReason = null),
+            processingTimeMs = 5L,
+            frameWidthPx = 1080,
+            frameHeightPx = 1920
+        )
+        val coverage = com.openprofiler.domain.model.CoverageEvaluationResult(
+            isAccepted = true,
+            rejectReason = null,
+            coverageDelta = 5.0,
+            diversityScore = 10.0,
+            guidance = com.openprofiler.domain.model.CoverageGuidance.MOVE_LEFT,
+            remainingRequirements = emptyList(),
+            coverageData = com.openprofiler.domain.model.CoverageData(acceptedFrameCount = 1)
+        )
+
+        coEvery { detectBoardUseCase(any(), any(), any(), any()) } returns detection
+        coEvery { evaluateQualityUseCase(any(), any(), any()) } returns quality
+        coEvery { evaluateCoverageUseCase(any(), any(), any()) } returns coverage
+
+        viewModel.analyze(imageProxy)
+        advanceUntilIdle()
+
+        // 1920x1080 rotated 90 degrees -> 1080x1920
+        coVerify { evaluateCoverageUseCase(detection, 1080, 1920) }
+        coVerify { calibrationRepository.addFrame(any(), any(), 1080, 1920) }
     }
 
     @Test

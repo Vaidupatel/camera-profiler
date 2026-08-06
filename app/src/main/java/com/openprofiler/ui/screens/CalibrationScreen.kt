@@ -29,13 +29,50 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontWeight
 import com.openprofiler.common.util.Logger
+import com.openprofiler.domain.model.CoverageGuidance
 import com.openprofiler.ui.components.CameraPreview
 import com.openprofiler.ui.components.DetectionOverlay
 import com.openprofiler.ui.util.rememberCameraLifecycleOwner
 import com.openprofiler.ui.viewmodel.CalibrationViewModel
 
 private const val TAG = "CalibrationScreen"
+
+@Composable
+private fun GuidanceOverlay(
+    guidance: CoverageGuidance,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .background(
+                color = Color.Black.copy(alpha = 0.6f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Text instruction (Primary)
+            Text(
+                text = guidance.text,
+                color = if (guidance == CoverageGuidance.EXCELLENT) Color(0xFF00E676) else Color.White,
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            )
+            
+            if (guidance != CoverageGuidance.EXCELLENT) {
+                Text(
+                    text = "Adjust board position for better coverage",
+                    color = Color.LightGray,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+        }
+    }
+}
 
 /**
  * Calibration Session screen — owns the live CameraX Preview + ImageAnalysis session.
@@ -99,6 +136,16 @@ fun CalibrationScreen(
                 detectionResult = uiState.detectionResult,
             )
 
+            // 2.5 Guidance overlay
+            uiState.guidance?.let { guidance ->
+                GuidanceOverlay(
+                    guidance = guidance,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(bottom = 120.dp) // Offset above bottom card
+                )
+            }
+
             // 3. Bottom status card
             Column(
                 modifier = Modifier
@@ -111,18 +158,18 @@ fun CalibrationScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Coverage: 0%",
+                            text = "Coverage: ${uiState.coverageData.overallPercentage.toInt()}%",
                             style = MaterialTheme.typography.titleMedium,
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         LinearProgressIndicator(
-                            progress = { 0.0f },
+                            progress = { (uiState.coverageData.overallPercentage / 100.0).toFloat() },
                             modifier = Modifier.fillMaxWidth(),
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Text("Accepted Frames: 0 / 15 minimum")
+                        Text("Accepted Frames: ${uiState.coverageData.acceptedFrameCount} / ${uiState.minAcceptedFrames} minimum")
                         Text(uiState.targetStatusText)
                         Text(uiState.qualityStatusText)
 

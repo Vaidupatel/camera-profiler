@@ -1,5 +1,6 @@
 package com.openprofiler.quality
 
+import com.openprofiler.common.util.ImageDimensionUtils
 import com.openprofiler.domain.model.BoardConfig
 import com.openprofiler.domain.model.DetectionResult
 import com.openprofiler.domain.model.IntrinsicsSource
@@ -100,8 +101,8 @@ class QualityEngine @Inject constructor(
             metrics += metricsFromNative(native, t)
         }
 
-        val frameW = native?.frameWidth?.takeIf { it > 0 } ?: rotatedWidth(width, height, rotationDegrees)
-        val frameH = native?.frameHeight?.takeIf { it > 0 } ?: rotatedHeight(width, height, rotationDegrees)
+        val frameW = native?.frameWidth?.takeIf { it > 0 } ?: ImageDimensionUtils.rotatedWidth(width, height, rotationDegrees)
+        val frameH = native?.frameHeight?.takeIf { it > 0 } ?: ImageDimensionUtils.rotatedHeight(width, height, rotationDegrees)
 
         metrics += metricsFromDetection(detection, boardConfig, frameW, frameH, t)
         metrics += QualityMetricRules.imageResolution(frameW, frameH, t)
@@ -325,12 +326,6 @@ class QualityEngine @Inject constructor(
             primaryRejectReason = reject
         )
     }
-
-    private fun rotatedWidth(width: Int, height: Int, rotation: Int): Int =
-        if (rotation == 90 || rotation == 270) height else width
-
-    private fun rotatedHeight(width: Int, height: Int, rotation: Int): Int =
-        if (rotation == 90 || rotation == 270) width else height
 
     private data class CoverageMeasurements(
         val widthPercent: Double,

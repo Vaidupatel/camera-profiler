@@ -1,0 +1,20 @@
+{
+  "gridRows": 3,
+  "gridCols": 3,
+  "minAcceptedFrames": 15,
+  "minGridCoveragePercent": 70.0,
+  "minScaleBuckets": 3,
+  "minPoseBins": 4,
+  "minDistanceBins": 3,
+  "targetDiversityScore": 80.0,
+  "minDiversityDeltaToAccept": 0.1,
+  "scaleThresholdsPercent": [10.0, 25.0, 40.0, 60.0],
+  "pitchBinsDegrees": [-45.0, -15.0, 15.0, 45.0],
+  "yawBinsDegrees": [-45.0, -15.0, 15.0, 45.0],
+  "rollBinsDegrees": [-30.0, -10.0, 10.0, 30.0],
+  "distanceBinsMm": [500.0, 1000.0, 1500.0, 2500.0],
+  "gridWeight": 0.35,
+  "scaleWeight": 0.20,
+  "poseWeight": 0.25,
+  "distanceWeight": 0.20
+}

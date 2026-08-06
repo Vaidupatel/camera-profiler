@@ -337,18 +337,23 @@ object QualityMetricRules {
     }
 
     fun imageResolution(widthPx: Int, heightPx: Int, t: QualityThresholds): QualityMetric {
-        val pass = widthPx >= t.minWidthPx && heightPx >= t.minHeightPx
+        val minDimFrame = minOf(widthPx, heightPx)
+        val maxDimFrame = maxOf(widthPx, heightPx)
+        val minDimReq = minOf(t.minWidthPx, t.minHeightPx)
+        val maxDimReq = maxOf(t.minWidthPx, t.minHeightPx)
+
+        val pass = minDimFrame >= minDimReq && maxDimFrame >= maxDimReq
         val status = if (pass) QualityMetricStatus.PASS else QualityMetricStatus.FAIL
-        val minDim = minOf(widthPx, heightPx).toDouble()
+        val minDim = minDimFrame.toDouble()
         val reason = if (pass) {
-            "Resolution ${widthPx}x${heightPx} meets minimum ${t.minWidthPx}x${t.minHeightPx}"
+            "Resolution ${widthPx}x${heightPx} meets minimum requirement (${minDimReq}x${maxDimReq})"
         } else {
-            "Resolution ${widthPx}x${heightPx} below minimum ${t.minWidthPx}x${t.minHeightPx}"
+            "Resolution ${widthPx}x${heightPx} below minimum requirement (${minDimReq}x${maxDimReq})"
         }
         return QualityMetric(
             id = QualityMetricId.IMAGE_RESOLUTION,
             value = minDim,
-            threshold = minOf(t.minWidthPx, t.minHeightPx).toDouble(),
+            threshold = minDimReq.toDouble(),
             status = status,
             reason = reason,
             secondaryValues = mapOf(
