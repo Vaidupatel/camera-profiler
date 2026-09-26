@@ -26,6 +26,7 @@ class CameraIntrinsicsProviderImpl @Inject constructor(
         cameraId: String?,
         imageWidthPx: Int,
         imageHeightPx: Int,
+        rotationDegrees: Int,
     ): CameraIntrinsics? {
         if (imageWidthPx <= 0 || imageHeightPx <= 0) return null
 
@@ -33,10 +34,10 @@ class CameraIntrinsicsProviderImpl @Inject constructor(
         val chars = meta.cameraCharacteristics
         val sensor = meta.sensor
 
-        fromLensIntrinsicCalibration(chars, sensor, imageWidthPx, imageHeightPx)?.let {
+        fromLensIntrinsicCalibration(chars, sensor, imageWidthPx, imageHeightPx, rotationDegrees)?.let {
             return it
         }
-        return fromFocalLengthAndSensor(chars, sensor, imageWidthPx, imageHeightPx)
+        return fromFocalLengthAndSensor(chars, sensor, imageWidthPx, imageHeightPx, rotationDegrees)
     }
 
     /**
@@ -48,6 +49,7 @@ class CameraIntrinsicsProviderImpl @Inject constructor(
         sensor: SensorMetadata,
         imageWidthPx: Int,
         imageHeightPx: Int,
+        rotationDegrees: Int,
     ): CameraIntrinsics? {
         val calib = chars.intrinsicCalibration ?: return null
         if (calib.size < 4) return null
@@ -70,6 +72,7 @@ class CameraIntrinsicsProviderImpl @Inject constructor(
             activeHeight = refH,
             imageWidth = imageWidthPx,
             imageHeight = imageHeightPx,
+            rotationDegrees = rotationDegrees,
         )
         val crop = ActiveArrayIntrinsicsScaler.centerCropWindow(refW, refH, imageWidthPx, imageHeightPx)
         Timber.d(
@@ -97,6 +100,7 @@ class CameraIntrinsicsProviderImpl @Inject constructor(
         sensor: SensorMetadata,
         imageWidthPx: Int,
         imageHeightPx: Int,
+        rotationDegrees: Int,
     ): CameraIntrinsics? {
         val focalMm = chars.availableFocalLengths.firstOrNull()?.toDouble() ?: return null
         if (focalMm <= 0.0) return null
@@ -105,7 +109,7 @@ class CameraIntrinsicsProviderImpl @Inject constructor(
         if (sensorWmm <= 0.0 || sensorHmm <= 0.0) return null
 
         val pixelW = (sensor.pixelArrayWidth ?: sensor.activeArrayWidth)?.toDouble() ?: return null
-        val pixelH = (sensor.pixelArrayHeight ?: sensor.activeArrayHeight)?.toDouble() ?: return null
+        val pixelH = (sensor.pixelArrayHeight ?: sensor.pixelArrayHeight)?.toDouble() ?: return null
         if (pixelW <= 0.0 || pixelH <= 0.0) return null
 
         val activeW = (sensor.activeArrayWidth ?: sensor.pixelArrayWidth)?.toDouble() ?: return null
@@ -128,6 +132,7 @@ class CameraIntrinsicsProviderImpl @Inject constructor(
             activeHeight = activeH,
             imageWidth = imageWidthPx,
             imageHeight = imageHeightPx,
+            rotationDegrees = rotationDegrees,
         )
         val crop = ActiveArrayIntrinsicsScaler.centerCropWindow(activeW, activeH, imageWidthPx, imageHeightPx)
         // Implied horizontal FOV of the analysis stream (degrees) for log diagnostics.

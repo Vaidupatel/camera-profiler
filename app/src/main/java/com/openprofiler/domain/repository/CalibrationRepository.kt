@@ -1,16 +1,25 @@
 package com.openprofiler.domain.repository
 
-import com.openprofiler.domain.model.BoardConfig
-import com.openprofiler.domain.model.CalibrationResult
-import com.openprofiler.domain.model.DetectedCorner
+import com.openprofiler.domain.model.*
 
 /**
  * Repository interface for calibration operations and session data accumulation.
  */
 interface CalibrationRepository {
     /**
-     * Records a frame's point correspondences for the calibration corpus.
-     * Only called for frames accepted by the coverage engine.
+     * Records a frame's complete observation for the calibration corpus.
+     * Only called for frames accepted by the quality and coverage engines.
+     */
+    fun addFrame(
+        detection: DetectionResult,
+        quality: QualityResult,
+        boardConfig: BoardConfig,
+        coverageContribution: Double,
+        metadata: Map<String, String> = emptyMap()
+    )
+
+    /**
+     * Legacy method for simple frame addition (backward compatibility).
      */
     fun addFrame(
         corners: List<DetectedCorner>,
@@ -34,4 +43,9 @@ interface CalibrationRepository {
      * Returns the count of frames currently in the calibration corpus.
      */
     fun getAcceptedFrameCount(): Int
+
+    /**
+     * Returns the complete dataset for the current session.
+     */
+    fun getDataset(boardConfig: BoardConfig): CalibrationDataset
 }

@@ -34,6 +34,8 @@ data class DetectionResult(
     val boardPose: BoardPose?,
     val detectionConfidence: Float,
     val processingTimeMs: Long,
+    val frameWidth: Int = 0,
+    val frameHeight: Int = 0,
     val rejectedReason: String? = null,
     val detectedMarkers: List<DetectedMarker> = emptyList(),
     val boardAxes: BoardAxesOverlay? = null,

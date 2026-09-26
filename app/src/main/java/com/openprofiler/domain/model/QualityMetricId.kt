@@ -1,12 +1,16 @@
 package com.openprofiler.domain.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Identifiers for every measured quality metric.
  */
+@Serializable
 enum class QualityMetricId {
     BLUR,
     SHARPNESS,
     EXPOSURE,
+    BLACK_LEVEL,
     CONTRAST,
     NOISE,
     TARGET_COVERAGE,

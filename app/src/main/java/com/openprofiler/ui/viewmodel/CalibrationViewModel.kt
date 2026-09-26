@@ -83,7 +83,7 @@ class CalibrationViewModel @Inject constructor(
     private val isProcessingFrame = AtomicBoolean(false)
     private val framesAnalyzed = AtomicLong(0)
     private val seedIntrinsics =
-        AtomicReference<Pair<Pair<Int, Int>, com.openprofiler.domain.model.CameraIntrinsics?>?>(null)
+        AtomicReference<Pair<Triple<Int, Int, Int>, com.openprofiler.domain.model.CameraIntrinsics?>?>(null)
 
     @Volatile
     private var sessionToken: CameraSessionToken = CameraSessionToken.None
@@ -119,7 +119,7 @@ class CalibrationViewModel @Inject constructor(
                 val rotatedWidth = ImageDimensionUtils.rotatedWidth(imageProxy.width, imageProxy.height, rotationDegrees)
                 val rotatedHeight = ImageDimensionUtils.rotatedHeight(imageProxy.width, imageProxy.height, rotationDegrees)
 
-                val seed = resolveSeedIntrinsics(rotatedWidth, rotatedHeight)
+                val seed = resolveSeedIntrinsics(rotatedWidth, rotatedHeight, rotationDegrees)
                 val detection = detectBoardUseCase(
                     imageProxy = imageProxy,
                     cameraMatrix = seed?.cameraMatrix,
@@ -146,13 +146,13 @@ class CalibrationViewModel @Inject constructor(
                     currentGuidance = coverageEval.guidance
 
                     if (coverageEval.isAccepted) {
-                        // Accepted frame! Record point correspondences in the calibration corpus.
+                        // Accepted frame! Record complete observation in the calibration corpus.
                         boardConfig?.let { config ->
                             calibrationRepository.addFrame(
-                                corners = detection.cornerCoordinates,
+                                detection = detection,
+                                quality = quality,
                                 boardConfig = config,
-                                width = rotatedWidth,
-                                height = rotatedHeight
+                                coverageContribution = coverageEval.coverageDelta
                             )
                         }
 
@@ -236,15 +236,17 @@ class CalibrationViewModel @Inject constructor(
     private fun resolveSeedIntrinsics(
         width: Int,
         height: Int,
+        rotationDegrees: Int,
     ): com.openprofiler.domain.model.CameraIntrinsics? {
-        val sizeKey = width to height
-        seedIntrinsics.get()?.let { (cachedSize, cachedIntrinsics) ->
-            if (cachedSize == sizeKey) return cachedIntrinsics
+        val sizeKey = Triple(width, height, rotationDegrees)
+        seedIntrinsics.get()?.let { (cachedKey, cachedIntrinsics) ->
+            if (cachedKey == sizeKey) return cachedIntrinsics
         }
         val resolved = cameraIntrinsicsProvider.getSeedIntrinsics(
             cameraId = null,
             imageWidthPx = width,
             imageHeightPx = height,
+            rotationDegrees = rotationDegrees,
         )
         seedIntrinsics.set(sizeKey to resolved)
         if (resolved == null) {

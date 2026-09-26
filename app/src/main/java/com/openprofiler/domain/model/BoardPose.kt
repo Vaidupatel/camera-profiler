@@ -1,5 +1,7 @@
 package com.openprofiler.domain.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * 3D pose of the calibration target board relative to the camera coordinate frame.
  *
@@ -9,6 +11,7 @@ package com.openprofiler.domain.model
  *   Live session pose uses [IntrinsicsSource.FACTORY_ESTIMATE]; exported profile
  *   intrinsics must use [IntrinsicsSource.CALIBRATED] from `cv::calibrateCamera`.
  */
+@Serializable
 data class BoardPose(
     val rvec: DoubleArray,
     val tvec: DoubleArray,

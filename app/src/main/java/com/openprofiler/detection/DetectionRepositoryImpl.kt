@@ -1,6 +1,7 @@
 package com.openprofiler.detection
 
 import androidx.camera.core.ImageProxy
+import com.openprofiler.common.util.ImageDimensionUtils
 import com.openprofiler.domain.model.BoardAxesOverlay
 import com.openprofiler.domain.model.BoardConfig
 import com.openprofiler.domain.model.BoardPose
@@ -102,6 +103,8 @@ class DetectionRepositoryImpl @Inject constructor(
                 nativeResult,
                 System.currentTimeMillis() - startTime,
                 intrinsicsSource,
+                ImageDimensionUtils.rotatedWidth(imageProxy.width, imageProxy.height, imageProxy.imageInfo.rotationDegrees),
+                ImageDimensionUtils.rotatedHeight(imageProxy.width, imageProxy.height, imageProxy.imageInfo.rotationDegrees),
             )
         } catch (e: Exception) {
             Timber.e(e, "Error executing detectBoard")
@@ -120,6 +123,8 @@ class DetectionRepositoryImpl @Inject constructor(
         native: NativeDetectionResult,
         elapsedTimeMs: Long,
         intrinsicsSource: IntrinsicsSource,
+        frameWidth: Int,
+        frameHeight: Int,
     ): DetectionResult {
         val corners = mutableListOf<DetectedCorner>()
         for (i in native.charucoIds.indices) {
@@ -213,6 +218,8 @@ class DetectionRepositoryImpl @Inject constructor(
             boardPose = pose,
             detectionConfidence = native.detectionConfidence,
             processingTimeMs = native.processingTimeMs.takeIf { it > 0 } ?: elapsedTimeMs,
+            frameWidth = frameWidth,
+            frameHeight = frameHeight,
             rejectedReason = native.rejectedReason,
             detectedMarkers = markers,
             boardAxes = axes,

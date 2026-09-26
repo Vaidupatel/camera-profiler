@@ -1,5 +1,7 @@
 package com.openprofiler.domain.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Origin of the camera intrinsics used for a measurement.
  *
@@ -9,6 +11,7 @@ package com.openprofiler.domain.model
  * come from [CALIBRATED] (`cv::calibrateCamera` over accepted frames) and must
  * never be copied from the live seed.
  */
+@Serializable
 enum class IntrinsicsSource {
     /** No usable intrinsics; pose must not be fabricated. */
     UNAVAILABLE,

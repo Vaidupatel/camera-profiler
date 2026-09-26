@@ -89,16 +89,19 @@ class QualityEngine @Inject constructor(
             yRowStride = yRowStride,
             rotationDegrees = rotationDegrees,
             darkPixelThreshold = t.darkPixelThreshold,
-            brightPixelThreshold = t.brightPixelThreshold
+            brightPixelThreshold = t.brightPixelThreshold,
+            detection = detection,
+            boardConfig = boardConfig
         )
 
         val metrics = ArrayList<QualityMetric>(12)
 
+        val isTargetAware = detection?.boardDetected == true
         if (native == null || !native.success) {
             Timber.e("Native image quality evaluation failed")
             metrics += failedNativePlaceholders(t)
         } else {
-            metrics += metricsFromNative(native, t)
+            metrics += metricsFromNative(native, t, isTargetAware)
         }
 
         val frameW = native?.frameWidth?.takeIf { it > 0 } ?: ImageDimensionUtils.rotatedWidth(width, height, rotationDegrees)
@@ -137,8 +140,9 @@ class QualityEngine @Inject constructor(
     ): QualityResult {
         val start = System.currentTimeMillis()
         val t = thresholdsOverride
+        val isTargetAware = detection?.boardDetected == true
         val metrics = ArrayList<QualityMetric>(12)
-        metrics += metricsFromNative(native, t)
+        metrics += metricsFromNative(native, t, isTargetAware)
         metrics += metricsFromDetection(
             detection,
             boardConfig,
@@ -161,7 +165,8 @@ class QualityEngine @Inject constructor(
 
     private fun metricsFromNative(
         native: NativeImageQualityMeasurements,
-        t: QualityThresholds
+        t: QualityThresholds,
+        isTargetAware: Boolean = false
     ): List<QualityMetric> {
         return listOf(
             QualityMetricRules.blur(native.blurLaplacianVariance, t),
@@ -170,9 +175,16 @@ class QualityEngine @Inject constructor(
                 native.meanBrightness,
                 native.darkPixelRatio,
                 native.brightPixelRatio,
-                t
+                t,
+                isTargetAware
             ),
-            QualityMetricRules.contrast(native.contrastScore, t),
+            QualityMetricRules.blackLevel(
+                native.blackMeanBrightness,
+                native.blackClippingRatio,
+                t,
+                isTargetAware
+            ),
+            QualityMetricRules.contrast(native.contrastScore, t, isTargetAware),
             QualityMetricRules.noise(native.noiseScore, t),
             QualityMetricRules.motion(native.motionMad, native.hasPriorFrame, t)
         )
@@ -199,6 +211,13 @@ class QualityEngine @Inject constructor(
                 com.openprofiler.domain.model.QualityMetricId.EXPOSURE,
                 0.0,
                 t.minMeanBrightness,
+                QualityMetricStatus.FAIL,
+                reason
+            ),
+            QualityMetric(
+                com.openprofiler.domain.model.QualityMetricId.BLACK_LEVEL,
+                0.0,
+                t.maxBlackMean,
                 QualityMetricStatus.FAIL,
                 reason
             ),

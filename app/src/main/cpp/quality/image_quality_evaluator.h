@@ -22,6 +22,13 @@ struct ImageQualityMeasurements {
     int frameWidth = 0;
     int frameHeight = 0;
     bool success = false;
+
+    // Target-aware metrics
+    double whiteMeanBrightness = 0.0;
+    double whiteSaturationRatio = 0.0;
+    double blackMeanBrightness = 0.0;
+    double blackClippingRatio = 0.0;
+    double targetContrast = 0.0;
 };
 
 /**
@@ -40,7 +47,16 @@ public:
         int yRowStride,
         int rotationDegrees,
         double darkPixelThreshold,
-        double brightPixelThreshold
+        double brightPixelThreshold,
+        int roiLeft = -1,
+        int roiTop = -1,
+        int roiRight = -1,
+        int roiBottom = -1,
+        const float* charucoCorners = nullptr,
+        const int* charucoIds = nullptr,
+        int numCorners = 0,
+        int squaresX = -1,
+        int squaresY = -1
     );
 
     void resetMotionState();

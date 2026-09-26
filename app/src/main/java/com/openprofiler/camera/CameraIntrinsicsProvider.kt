@@ -25,5 +25,6 @@ interface CameraIntrinsicsProvider {
         cameraId: String? = null,
         imageWidthPx: Int,
         imageHeightPx: Int,
+        rotationDegrees: Int = 0,
     ): CameraIntrinsics?
 }

@@ -41,11 +41,42 @@ class NativeQualityEngine @Inject constructor() {
         yRowStride: Int,
         rotationDegrees: Int,
         darkPixelThreshold: Double,
-        brightPixelThreshold: Double
+        brightPixelThreshold: Double,
+        detection: com.openprofiler.domain.model.DetectionResult? = null,
+        boardConfig: com.openprofiler.domain.model.BoardConfig? = null
     ): NativeImageQualityMeasurements? {
         if (nativeHandle == 0L) {
             if (!initialize()) return null
         }
+
+        val corners = detection?.cornerCoordinates
+        val cornerArray = if (corners != null && corners.isNotEmpty()) {
+            val arr = FloatArray(corners.size * 2)
+            corners.forEachIndexed { i, c ->
+                arr[i * 2] = c.x
+                arr[i * 2 + 1] = c.y
+            }
+            arr
+        } else null
+
+        val idArray = corners?.map { it.id }?.toIntArray()
+
+        val sx = boardConfig?.squaresX ?: -1
+        val sy = boardConfig?.squaresY ?: -1
+
+        // Calculate ROI for noise exclusion if needed
+        val bbox = detection?.observedBoundingBox
+        var roiL = -1
+        var roiT = -1
+        var roiR = -1
+        var roiB = -1
+        if (bbox != null && bbox.size >= 4) {
+            roiL = bbox.minOf { it.x }.toInt()
+            roiT = bbox.minOf { it.y }.toInt()
+            roiR = bbox.maxOf { it.x }.toInt()
+            roiB = bbox.maxOf { it.y }.toInt()
+        }
+
         return nativeEvaluate(
             nativeHandle,
             yBuffer,
@@ -54,7 +85,15 @@ class NativeQualityEngine @Inject constructor() {
             yRowStride,
             rotationDegrees,
             darkPixelThreshold,
-            brightPixelThreshold
+            brightPixelThreshold,
+            roiL,
+            roiT,
+            roiR,
+            roiB,
+            cornerArray,
+            idArray,
+            sx,
+            sy
         )
     }
 
@@ -85,7 +124,15 @@ class NativeQualityEngine @Inject constructor() {
         yRowStride: Int,
         rotationDegrees: Int,
         darkPixelThreshold: Double,
-        brightPixelThreshold: Double
+        brightPixelThreshold: Double,
+        roiLeft: Int,
+        roiTop: Int,
+        roiRight: Int,
+        roiBottom: Int,
+        charucoCorners: FloatArray?,
+        charucoIds: IntArray?,
+        squaresX: Int,
+        squaresY: Int
     ): NativeImageQualityMeasurements?
 
     private external fun nativeResetMotion(handle: Long)

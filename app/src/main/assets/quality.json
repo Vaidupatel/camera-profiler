@@ -9,6 +9,7 @@
   "warningMeanBrightnessHigh": 200.0,
   "maxDarkPixelRatio": 0.35,
   "maxBrightPixelRatio": 0.35,
+  "maxBlackMean": 45.0,
   "darkPixelThreshold": 30.0,
   "brightPixelThreshold": 225.0,
   "minContrastScore": 0.35,

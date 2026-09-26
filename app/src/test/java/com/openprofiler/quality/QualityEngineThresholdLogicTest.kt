@@ -122,7 +122,7 @@ class QualityEngineThresholdLogicTest {
         val result = engine.evaluateFromMeasurements(goodNative(), goodDetection(), board, thresholds)
         assertThat(result.summary.isAccepted).isTrue()
         assertThat(result.summary.failCount).isEqualTo(0)
-        assertThat(result.metrics).hasSize(12)
+        assertThat(result.metrics).hasSize(13)
         assertThat(result.metric(QualityMetricId.BLUR)!!.status).isEqualTo(QualityMetricStatus.PASS)
         assertThat(result.metric(QualityMetricId.EXPOSURE)!!.status).isEqualTo(QualityMetricStatus.PASS)
         assertThat(result.metric(QualityMetricId.CONTRAST)!!.status).isEqualTo(QualityMetricStatus.PASS)

@@ -18,6 +18,7 @@ data class QualityThresholds(
     val warningMeanBrightnessHigh: Double = 200.0,
     val maxDarkPixelRatio: Double = 0.35,
     val maxBrightPixelRatio: Double = 0.35,
+    val maxBlackMean: Double = 45.0,
     val darkPixelThreshold: Double = 30.0,
     val brightPixelThreshold: Double = 225.0,
     val minContrastScore: Double = 0.35,

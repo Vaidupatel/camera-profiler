@@ -1,5 +1,7 @@
 package com.openprofiler.domain.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Immutable measurement of a single quality attribute.
  *
@@ -14,6 +16,7 @@ package com.openprofiler.domain.model
  * @property reason Deterministic explanation of the status.
  * @property secondaryValues Optional named secondary measurements.
  */
+@Serializable
 data class QualityMetric(
     val id: QualityMetricId,
     val value: Double,

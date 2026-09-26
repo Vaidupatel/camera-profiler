@@ -58,8 +58,10 @@ object QualityMetricRules {
         meanBrightness: Double,
         darkRatio: Double,
         brightRatio: Double,
-        t: QualityThresholds
+        t: QualityThresholds,
+        isTargetAware: Boolean = false
     ): QualityMetric {
+        val prefix = if (isTargetAware) "Target (white cells) " else "Global frame "
         val underExposed = meanBrightness < t.minMeanBrightness || darkRatio > t.maxDarkPixelRatio
         val overExposed = meanBrightness > t.maxMeanBrightness || brightRatio > t.maxBrightPixelRatio
         val warningBand = meanBrightness < t.warningMeanBrightnessLow ||
@@ -72,13 +74,13 @@ object QualityMetricRules {
         }
         val reason = when {
             underExposed ->
-                "Underexposed: mean=$meanBrightness darkRatio=$darkRatio"
+                "${prefix}underexposed: mean=$meanBrightness darkRatio=$darkRatio"
             overExposed ->
-                "Overexposed: mean=$meanBrightness brightRatio=$brightRatio"
+                "${prefix}overexposed: mean=$meanBrightness brightRatio=$brightRatio"
             warningBand ->
-                "Exposure near limits: mean=$meanBrightness"
+                "${prefix}exposure near limits: mean=$meanBrightness"
             else ->
-                "Exposure within limits: mean=$meanBrightness"
+                "${prefix}exposure within limits: mean=$meanBrightness"
         }
         return QualityMetric(
             id = QualityMetricId.EXPOSURE,
@@ -91,12 +93,45 @@ object QualityMetricRules {
                 "brightRatio" to brightRatio,
                 "maxMeanBrightness" to t.maxMeanBrightness,
                 "underexposed" to if (underExposed) 1.0 else 0.0,
-                "overexposed" to if (overExposed) 1.0 else 0.0
+                "overexposed" to if (overExposed) 1.0 else 0.0,
+                "targetAware" to if (isTargetAware) 1.0 else 0.0
             )
         )
     }
 
-    fun contrast(score: Double, t: QualityThresholds): QualityMetric {
+    fun blackLevel(
+        meanBlack: Double,
+        clippingRatio: Double,
+        t: QualityThresholds,
+        isTargetAware: Boolean = false
+    ): QualityMetric {
+        if (!isTargetAware) {
+            return QualityMetric(
+                QualityMetricId.BLACK_LEVEL,
+                0.0,
+                t.maxBlackMean,
+                QualityMetricStatus.PASS,
+                "Black level not evaluated (global mode)"
+            )
+        }
+        val status = if (meanBlack > t.maxBlackMean) QualityMetricStatus.FAIL else QualityMetricStatus.PASS
+        val reason = if (status == QualityMetricStatus.FAIL) {
+            "Target black level too high: mean=$meanBlack (max=${t.maxBlackMean})"
+        } else {
+            "Target black level adequate: mean=$meanBlack"
+        }
+        return QualityMetric(
+            id = QualityMetricId.BLACK_LEVEL,
+            value = meanBlack,
+            threshold = t.maxBlackMean,
+            status = status,
+            reason = reason,
+            secondaryValues = mapOf("clippingRatio" to clippingRatio)
+        )
+    }
+
+    fun contrast(score: Double, t: QualityThresholds, isTargetAware: Boolean = false): QualityMetric {
+        val prefix = if (isTargetAware) "Target " else "Global "
         val status = when {
             score < t.minContrastScore -> QualityMetricStatus.FAIL
             score < t.warningContrastScore -> QualityMetricStatus.WARNING
@@ -104,11 +139,11 @@ object QualityMetricRules {
         }
         val reason = when (status) {
             QualityMetricStatus.FAIL ->
-                "Contrast score $score below minimum ${t.minContrastScore}"
+                "${prefix}contrast score $score below minimum ${t.minContrastScore}"
             QualityMetricStatus.WARNING ->
-                "Contrast score $score below warning ${t.warningContrastScore}"
+                "${prefix}contrast score $score below warning ${t.warningContrastScore}"
             QualityMetricStatus.PASS ->
-                "Contrast score $score meets threshold ${t.minContrastScore}"
+                "${prefix}contrast score $score meets threshold ${t.minContrastScore}"
         }
         return QualityMetric(QualityMetricId.CONTRAST, score, t.minContrastScore, status, reason)
     }

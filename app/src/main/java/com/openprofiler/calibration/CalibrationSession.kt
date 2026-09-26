@@ -1,70 +1,52 @@
 package com.openprofiler.calibration
 
-import com.openprofiler.domain.model.BoardConfig
-import com.openprofiler.domain.model.DetectedCorner
-import com.openprofiler.domain.model.Point3D
+import com.openprofiler.domain.model.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Owns the accumulation of calibration point correspondences.
- * Reconstructs 3D object points from ChArUco geometry.
+ * Stores complete production-grade observations.
  */
 @Singleton
 class CalibrationSession @Inject constructor() {
     private val lock = Any()
-    
-    // List of frames, each frame is a list of (ObjectPoint, ImagePoint)
-    private val accumulatedObjectPoints = mutableListOf<FloatArray>()
-    private val accumulatedImagePoints = mutableListOf<FloatArray>()
-    
-    fun addFrame(
-        corners: List<DetectedCorner>,
-        boardConfig: BoardConfig
-    ) {
+
+    private val _observations = MutableStateFlow<List<AcceptedObservation>>(emptyList())
+    val observations: StateFlow<List<AcceptedObservation>> = _observations
+
+    fun addObservation(observation: FrameObservation) {
         synchronized(lock) {
-            val objPoints = mutableListOf<Float>()
-            val imgPoints = mutableListOf<Float>()
-            
-            val squareSize = boardConfig.squareLengthMm / 1000f // mm to meters
-            val cornersX = boardConfig.squaresX - 1
-            
-            for (corner in corners) {
-                val id = corner.id
-                val row = id / cornersX
-                val col = id % cornersX
-                
-                // Object Point (3D)
-                objPoints.add(col * squareSize)
-                objPoints.add(row * squareSize)
-                objPoints.add(0f)
-                
-                // Image Point (2D)
-                imgPoints.add(corner.x)
-                imgPoints.add(corner.y)
-            }
-            
-            accumulatedObjectPoints.add(objPoints.toFloatArray())
-            accumulatedImagePoints.add(imgPoints.toFloatArray())
+            val id = "frame_${observation.timestamp}_${_observations.value.size}"
+            val accepted = AcceptedObservation(CalibrationFrame(id, observation))
+            _observations.value = _observations.value + accepted
         }
     }
-    
+
     fun reset() {
         synchronized(lock) {
-            accumulatedObjectPoints.clear()
-            accumulatedImagePoints.clear()
+            _observations.value = emptyList()
         }
     }
-    
+
     fun getAcceptedFrameCount(): Int = synchronized(lock) {
-        accumulatedObjectPoints.size
+        _observations.value.size
     }
-    
+
+    fun getObservations(): List<AcceptedObservation> = synchronized(lock) {
+        _observations.value
+    }
+
+    /**
+     * Legacy support for native engine.
+     */
     fun getObjectPoints(): Array<FloatArray> = synchronized(lock) {
-        accumulatedObjectPoints.toTypedArray()
+        _observations.value.map { it.frame.observation.objectPoints.flatMap { p -> listOf(p.x, p.y, p.z) }.toFloatArray() }.toTypedArray()
     }
-    
+
     fun getImagePoints(): Array<FloatArray> = synchronized(lock) {
-        accumulatedImagePoints.toTypedArray()
+        _observations.value.map { it.frame.observation.imagePoints.flatMap { p -> listOf(p.x, p.y) }.toFloatArray() }.toTypedArray()
     }
 }

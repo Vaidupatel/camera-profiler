@@ -2,8 +2,10 @@
 
 #include <android/log.h>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/calib3d.hpp>
 #include <cmath>
 #include <algorithm>
+#include <vector>
 
 #define LOG_TAG "ImageQualityEvaluator"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -48,7 +50,16 @@ ImageQualityMeasurements ImageQualityEvaluator::evaluate(
     int yRowStride,
     int rotationDegrees,
     double darkPixelThreshold,
-    double brightPixelThreshold
+    double brightPixelThreshold,
+    int roiLeft,
+    int roiTop,
+    int roiRight,
+    int roiBottom,
+    const float* charucoCorners,
+    const int* charucoIds,
+    int numCorners,
+    int squaresX,
+    int squaresY
 ) {
     ImageQualityMeasurements out;
     if (yData == nullptr || width <= 0 || height <= 0 || yRowStride < width) {
@@ -82,57 +93,180 @@ ImageQualityMeasurements ImageQualityEvaluator::evaluate(
     cv::magnitude(sobelX_, sobelY_, sobelMag_);
     out.sharpnessGradientMagnitude = cv::mean(sobelMag_)[0];
 
-    // --- Exposure: mean + dark/bright ratios ---
-    cv::Scalar meanVal, stdVal;
-    cv::meanStdDev(grayWorking_, meanVal, stdVal);
-    out.meanBrightness = meanVal[0];
+    // --- Target-Aware Metrics (Exposure, Contrast, Black Level) ---
+    bool targetAwareSuccess = false;
+    if (charucoCorners != nullptr && charucoIds != nullptr && numCorners >= 4 && squaresX > 1 && squaresY > 1) {
+        const float cellSize = 40.0f;
+        std::vector<cv::Point2f> imagePoints;
+        std::vector<cv::Point2f> canonicalPoints;
+        for (int i = 0; i < numCorners; ++i) {
+            int id = charucoIds[i];
+            float cx = static_cast<float>(id % (squaresX - 1)) + 1.0f;
+            float cy = static_cast<float>(id / (squaresX - 1)) + 1.0f;
+            imagePoints.push_back(cv::Point2f(charucoCorners[i * 2], charucoCorners[i * 2 + 1]));
+            canonicalPoints.push_back(cv::Point2f(cx * cellSize, cy * cellSize));
+        }
 
-    const double darkT = darkPixelThreshold;
-    const double brightT = brightPixelThreshold;
-    int darkCount = 0;
-    int brightCount = 0;
-    const int total = grayWorking_.rows * grayWorking_.cols;
-    for (int r = 0; r < grayWorking_.rows; ++r) {
-        const uint8_t* row = grayWorking_.ptr<uint8_t>(r);
-        for (int c = 0; c < grayWorking_.cols; ++c) {
-            const uint8_t v = row[c];
-            if (v < darkT) ++darkCount;
-            if (v > brightT) ++brightCount;
+        cv::Mat H = cv::findHomography(imagePoints, canonicalPoints, cv::RANSAC);
+        if (!H.empty()) {
+            cv::Mat warped;
+            cv::Size warpedSize(squaresX * cellSize, squaresY * cellSize);
+            cv::warpPerspective(grayWorking_, warped, H, warpedSize);
+
+            std::vector<double> whiteMeans;
+            std::vector<double> blackMeans;
+            long whiteSaturatedCount = 0;
+            long whiteDarkCount = 0;
+            long whiteTotalCount = 0;
+            long blackClippedCount = 0;
+            long blackTotalCount = 0;
+
+            // Inset to avoid edges and partial pixels
+            int inset = static_cast<int>(cellSize * 0.15f);
+            int sampleSize = static_cast<int>(cellSize) - 2 * inset;
+
+            for (int y = 0; y < squaresY; ++y) {
+                for (int x = 0; x < squaresX; ++x) {
+                    cv::Rect roi(x * cellSize + inset, y * cellSize + inset, sampleSize, sampleSize);
+                    cv::Mat cell = warped(roi);
+                    cv::Scalar mean, std;
+                    cv::meanStdDev(cell, mean, std);
+
+                    // Standard ChArUco: (0,0) is black. (x+y)%2 == 0 -> black, else white.
+                    bool isWhite = ((x + y) % 2 != 0);
+                    if (isWhite) {
+                        whiteMeans.push_back(mean[0]);
+                        whiteTotalCount += cell.total();
+                        for (int r = 0; r < cell.rows; ++r) {
+                            const uint8_t* p = cell.ptr<uint8_t>(r);
+                            for (int c = 0; c < cell.cols; ++c) {
+                                if (p[c] >= brightPixelThreshold) whiteSaturatedCount++;
+                                if (p[c] <= darkPixelThreshold) whiteDarkCount++;
+                            }
+                        }
+                    } else {
+                        blackMeans.push_back(mean[0]);
+                        blackTotalCount += cell.total();
+                        for (int r = 0; r < cell.rows; ++r) {
+                            const uint8_t* p = cell.ptr<uint8_t>(r);
+                            for (int c = 0; c < cell.cols; ++c) {
+                                if (p[c] <= darkPixelThreshold) blackClippedCount++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!whiteMeans.empty()) {
+                double whiteSum = 0;
+                for (double m : whiteMeans) whiteSum += m;
+                out.whiteMeanBrightness = whiteSum / whiteMeans.size();
+                out.whiteSaturationRatio = whiteTotalCount > 0 ? (double)whiteSaturatedCount / whiteTotalCount : 0.0;
+
+                // Repurpose main fields for "Exposure" rule
+                out.meanBrightness = out.whiteMeanBrightness;
+                out.brightPixelRatio = out.whiteSaturationRatio;
+                out.darkPixelRatio = whiteTotalCount > 0 ? (double)whiteDarkCount / whiteTotalCount : 0.0;
+
+                targetAwareSuccess = true;
+            }
+
+            if (!blackMeans.empty()) {
+                double blackSum = 0;
+                for (double m : blackMeans) blackSum += m;
+                out.blackMeanBrightness = blackSum / blackMeans.size();
+                out.blackClippingRatio = blackTotalCount > 0 ? (double)blackClippedCount / blackTotalCount : 0.0;
+
+                // Repurpose main fields for "Exposure" rule (darkRatio)
+                out.darkPixelRatio = out.blackClippingRatio;
+            }
+
+            if (!whiteMeans.empty() && !blackMeans.empty()) {
+                out.targetContrast = (out.whiteMeanBrightness - out.blackMeanBrightness) / 255.0;
+                out.contrastScore = out.targetContrast;
+            }
         }
     }
-    out.darkPixelRatio = total > 0 ? static_cast<double>(darkCount) / total : 0.0;
-    out.brightPixelRatio = total > 0 ? static_cast<double>(brightCount) / total : 0.0;
 
-    // --- Contrast: histogram spread (p5..p95) / 255 ---
-    int hist[256] = {0};
-    for (int r = 0; r < grayWorking_.rows; ++r) {
-        const uint8_t* row = grayWorking_.ptr<uint8_t>(r);
-        for (int c = 0; c < grayWorking_.cols; ++c) {
-            hist[row[c]]++;
+    if (!targetAwareSuccess) {
+        // Fallback to global metrics if target detection fails or homography fails
+        cv::Scalar meanVal, stdVal;
+        cv::meanStdDev(grayWorking_, meanVal, stdVal);
+        out.meanBrightness = meanVal[0];
+
+        const double darkT = darkPixelThreshold;
+        const double brightT = brightPixelThreshold;
+        int darkCount = 0;
+        int brightCount = 0;
+        const int total = grayWorking_.rows * grayWorking_.cols;
+        for (int r = 0; r < grayWorking_.rows; ++r) {
+            const uint8_t* row = grayWorking_.ptr<uint8_t>(r);
+            for (int c = 0; c < grayWorking_.cols; ++c) {
+                const uint8_t v = row[c];
+                if (v < darkT) ++darkCount;
+                if (v > brightT) ++brightCount;
+            }
+        }
+        out.darkPixelRatio = total > 0 ? static_cast<double>(darkCount) / total : 0.0;
+        out.brightPixelRatio = total > 0 ? static_cast<double>(brightCount) / total : 0.0;
+
+        // --- Global Contrast: histogram spread (p5..p95) / 255 ---
+        int hist[256] = {0};
+        const int totalPixels = grayWorking_.rows * grayWorking_.cols;
+        for (int r = 0; r < grayWorking_.rows; ++r) {
+            const uint8_t* row = grayWorking_.ptr<uint8_t>(r);
+            for (int c = 0; c < grayWorking_.cols; ++c) {
+                hist[row[c]]++;
+            }
+        }
+        const int p5Target = std::max(1, totalPixels / 20);
+        const int p95Target = std::max(1, (totalPixels * 19) / 20);
+        int cumulative = 0;
+        int p5 = 0;
+        int p95 = 255;
+        bool foundP5 = false;
+        for (int i = 0; i < 256; ++i) {
+            cumulative += hist[i];
+            if (!foundP5 && cumulative >= p5Target) {
+                p5 = i;
+                foundP5 = true;
+            }
+            if (cumulative >= p95Target) {
+                p95 = i;
+                break;
+            }
+        }
+        out.contrastScore = (p95 - p5) / 255.0;
+    }
+
+    // --- Noise: Stddev of Laplacian residual in non-edge regions ---
+    // Algorithm: Partition image into 32x32 patches. Compute Laplacian stddev for each.
+    // Use the 25th percentile to represent sensor noise while ignoring high-contrast board edges.
+    // If a detector ROI is provided, completely exclude patches that intersect with it.
+    std::vector<double> patchStdDevs;
+    const int patchSize = 32;
+    for (int r = 0; r <= grayWorking_.rows - patchSize; r += patchSize) {
+        for (int c = 0; c <= grayWorking_.cols - patchSize; c += patchSize) {
+            if (roiLeft >= 0 && roiRight >= 0 && roiTop >= 0 && roiBottom >= 0) {
+                // Skip if patch intersects with the board ROI
+                if (!(c + patchSize <= roiLeft || c >= roiRight ||
+                      r + patchSize <= roiTop || r >= roiBottom)) {
+                    continue;
+                }
+            }
+            cv::Mat patch = laplacian_(cv::Rect(c, r, patchSize, patchSize));
+            cv::Scalar pMean, pStd;
+            cv::meanStdDev(patch, pMean, pStd);
+            patchStdDevs.push_back(pStd[0]);
         }
     }
-    const int p5Target = std::max(1, total / 20);
-    const int p95Target = std::max(1, (total * 19) / 20);
-    int cumulative = 0;
-    int p5 = 0;
-    int p95 = 255;
-    bool foundP5 = false;
-    for (int i = 0; i < 256; ++i) {
-        cumulative += hist[i];
-        if (!foundP5 && cumulative >= p5Target) {
-            p5 = i;
-            foundP5 = true;
-        }
-        if (cumulative >= p95Target) {
-            p95 = i;
-            break;
-        }
-    }
-    out.contrastScore = (p95 - p5) / 255.0;
 
-    // --- Noise: stddev of Laplacian residual (high-frequency energy) ---
-    // Reuse laplacian_ already computed; noise score = stddev of Laplacian.
-    out.noiseScore = lapStd[0];
+    if (patchStdDevs.empty()) {
+        out.noiseScore = lapStd[0];
+    } else {
+        std::sort(patchStdDevs.begin(), patchStdDevs.end());
+        out.noiseScore = patchStdDevs[patchStdDevs.size() / 4];
+    }
 
     // --- Motion: mean absolute difference vs prior frame ---
     if (hasPrevious_ &&

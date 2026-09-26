@@ -50,8 +50,13 @@ class NativeCalibrationEngine @Inject constructor() {
  */
 data class NativeCalibrationResult(
     val rms: Double,
-    val cameraMatrix: DoubleArray, // 9 elements
-    val distCoeffs: DoubleArray,   // 5+ elements
+    val cameraMatrix: DoubleArray,    // 9 elements
+    val distCoeffs: DoubleArray,      // 5+ elements
+    val stdDevIntrinsics: DoubleArray, // 18 elements for 5-dist model
+    val stdDevExtrinsics: DoubleArray, // 6 * N elements
+    val perViewErrors: DoubleArray,    // N elements
+    val rejectedFrames: IntArray,      // Indices of rejected frames
+    val residuals: DoubleArray,       // Flattened dx, dy for each corner
     val success: Boolean
 ) {
     override fun equals(other: Any?): Boolean {
@@ -63,6 +68,10 @@ data class NativeCalibrationResult(
         if (rms != other.rms) return false
         if (!cameraMatrix.contentEquals(other.cameraMatrix)) return false
         if (!distCoeffs.contentEquals(other.distCoeffs)) return false
+        if (!stdDevIntrinsics.contentEquals(other.stdDevIntrinsics)) return false
+        if (!stdDevExtrinsics.contentEquals(other.stdDevExtrinsics)) return false
+        if (!perViewErrors.contentEquals(other.perViewErrors)) return false
+        if (!rejectedFrames.contentEquals(other.rejectedFrames)) return false
         if (success != other.success) return false
 
         return true
@@ -72,6 +81,10 @@ data class NativeCalibrationResult(
         var result = rms.hashCode()
         result = 31 * result + cameraMatrix.contentHashCode()
         result = 31 * result + distCoeffs.contentHashCode()
+        result = 31 * result + stdDevIntrinsics.contentHashCode()
+        result = 31 * result + stdDevExtrinsics.contentHashCode()
+        result = 31 * result + perViewErrors.contentHashCode()
+        result = 31 * result + rejectedFrames.contentHashCode()
         result = 31 * result + success.hashCode()
         return result
     }

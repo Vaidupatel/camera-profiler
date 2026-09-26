@@ -23,7 +23,7 @@ bool clearPendingJniException(JNIEnv* env, const char* context) {
 }
 
 // Must match NativeImageQualityMeasurements primary constructor exactly:
-constexpr const char* kNativeImageQualityCtorSig = "(ZDDDDDDDDZII)V";
+constexpr const char* kNativeImageQualityCtorSig = "(ZDDDDDDDDZIIDDDDD)V";
 
 } // namespace
 
@@ -52,7 +52,15 @@ Java_com_openprofiler_native_1bridge_NativeQualityEngine_nativeEvaluate(
     jint yRowStride,
     jint rotationDegrees,
     jdouble darkPixelThreshold,
-    jdouble brightPixelThreshold) {
+    jdouble brightPixelThreshold,
+    jint roiLeft,
+    jint roiTop,
+    jint roiRight,
+    jint roiBottom,
+    jfloatArray charucoCorners,
+    jintArray charucoIds,
+    jint squaresX,
+    jint squaresY) {
 
     if (handle == 0) {
         LOGE("Native quality handle is null");
@@ -70,6 +78,16 @@ Java_com_openprofiler_native_1bridge_NativeQualityEngine_nativeEvaluate(
         return nullptr;
     }
 
+    float* cornersPtr = nullptr;
+    int* idsPtr = nullptr;
+    int numCorners = 0;
+
+    if (charucoCorners != nullptr && charucoIds != nullptr) {
+        numCorners = env->GetArrayLength(charucoIds);
+        cornersPtr = env->GetFloatArrayElements(charucoCorners, nullptr);
+        idsPtr = env->GetIntArrayElements(charucoIds, nullptr);
+    }
+
     auto* evaluator = reinterpret_cast<ImageQualityEvaluator*>(handle);
     ImageQualityMeasurements m = evaluator->evaluate(
         yData,
@@ -78,8 +96,20 @@ Java_com_openprofiler_native_1bridge_NativeQualityEngine_nativeEvaluate(
         yRowStride,
         rotationDegrees,
         darkPixelThreshold,
-        brightPixelThreshold
+        brightPixelThreshold,
+        roiLeft,
+        roiTop,
+        roiRight,
+        roiBottom,
+        cornersPtr,
+        idsPtr,
+        numCorners,
+        squaresX,
+        squaresY
     );
+
+    if (cornersPtr) env->ReleaseFloatArrayElements(charucoCorners, cornersPtr, JNI_ABORT);
+    if (idsPtr) env->ReleaseIntArrayElements(charucoIds, idsPtr, JNI_ABORT);
 
     jclass cls = env->FindClass(
         "com/openprofiler/native_bridge/NativeImageQualityMeasurements");
@@ -108,7 +138,12 @@ Java_com_openprofiler_native_1bridge_NativeQualityEngine_nativeEvaluate(
         m.motionMad,
         static_cast<jboolean>(m.hasPriorFrame ? JNI_TRUE : JNI_FALSE),
         m.frameWidth,
-        m.frameHeight
+        m.frameHeight,
+        m.whiteMeanBrightness,
+        m.whiteSaturationRatio,
+        m.blackMeanBrightness,
+        m.blackClippingRatio,
+        m.targetContrast
     );
 
     if (!obj || clearPendingJniException(env, "NewObject(NativeImageQualityMeasurements)")) {

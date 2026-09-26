@@ -44,35 +44,46 @@ fun DetectionOverlay(
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
-        if (detectionResult != null && detectionResult.boardDetected) {
+        if (detectionResult != null && detectionResult.boardDetected &&
+            detectionResult.frameWidth > 0 && detectionResult.frameHeight > 0
+        ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val canvasWidth = size.width
                 val canvasHeight = size.height
+                val imgWidth = detectionResult.frameWidth.toFloat()
+                val imgHeight = detectionResult.frameHeight.toFloat()
 
-                // Assume coordinates are normalized if in [0, 1] range, or map directly
-                // Scaling factors handle pixel vs normalized space gracefully
-                val maxX = maxOf(
-                    detectionResult.cornerCoordinates.maxOfOrNull { it.x } ?: 1.0f,
-                    detectionResult.detectedMarkers.flatMap { m -> m.corners.map { it.x } }.maxOfOrNull { it } ?: 1.0f,
-                    1.0f
-                )
-                val maxY = maxOf(
-                    detectionResult.cornerCoordinates.maxOfOrNull { it.y } ?: 1.0f,
-                    detectionResult.detectedMarkers.flatMap { m -> m.corners.map { it.y } }.maxOfOrNull { it } ?: 1.0f,
-                    1.0f
-                )
+                val canvasAspect = canvasWidth / canvasHeight
+                val imgAspect = imgWidth / imgHeight
 
-                val scaleX = if (maxX > canvasWidth) 1.0f else if (maxX <= 1.0f) canvasWidth else 1.0f
-                val scaleY = if (maxY > canvasHeight) 1.0f else if (maxY <= 1.0f) canvasHeight else 1.0f
+                val scale: Float
+                val offsetX: Float
+                val offsetY: Float
+
+                if (canvasAspect > imgAspect) {
+                    // Canvas is wider than image (relatively) -> match width, crop image top/bottom
+                    scale = canvasWidth / imgWidth
+                    offsetX = 0f
+                    offsetY = (canvasHeight - imgHeight * scale) / 2f
+                } else {
+                    // Canvas is taller than image (relatively) -> match height, crop image sides
+                    scale = canvasHeight / imgHeight
+                    offsetY = 0f
+                    offsetX = (canvasWidth - imgWidth * scale) / 2f
+                }
+
+                // Helper to map image coords to canvas coords
+                fun mapX(x: Float) = x * scale + offsetX
+                fun mapY(y: Float) = y * scale + offsetY
 
                 // 1. Draw Bounding Box (Yellow)
                 detectionResult.boundingBox?.let { boxPoints ->
                     if (boxPoints.size >= 4) {
                         val path = Path().apply {
-                            moveTo(boxPoints[0].x * scaleX, boxPoints[0].y * scaleY)
-                            lineTo(boxPoints[1].x * scaleX, boxPoints[1].y * scaleY)
-                            lineTo(boxPoints[2].x * scaleX, boxPoints[2].y * scaleY)
-                            lineTo(boxPoints[3].x * scaleX, boxPoints[3].y * scaleY)
+                            moveTo(mapX(boxPoints[0].x), mapY(boxPoints[0].y))
+                            lineTo(mapX(boxPoints[1].x), mapY(boxPoints[1].y))
+                            lineTo(mapX(boxPoints[2].x), mapY(boxPoints[2].y))
+                            lineTo(mapX(boxPoints[3].x), mapY(boxPoints[3].y))
                             close()
                         }
                         drawPath(
@@ -87,10 +98,10 @@ fun DetectionOverlay(
                 detectionResult.detectedMarkers.forEach { marker ->
                     if (marker.corners.size == 4) {
                         val path = Path().apply {
-                            moveTo(marker.corners[0].x * scaleX, marker.corners[0].y * scaleY)
-                            lineTo(marker.corners[1].x * scaleX, marker.corners[1].y * scaleY)
-                            lineTo(marker.corners[2].x * scaleX, marker.corners[2].y * scaleY)
-                            lineTo(marker.corners[3].x * scaleX, marker.corners[3].y * scaleY)
+                            moveTo(mapX(marker.corners[0].x), mapY(marker.corners[0].y))
+                            lineTo(mapX(marker.corners[1].x), mapY(marker.corners[1].y))
+                            lineTo(mapX(marker.corners[2].x), mapY(marker.corners[2].y))
+                            lineTo(mapX(marker.corners[3].x), mapY(marker.corners[3].y))
                             close()
                         }
                         drawPath(
@@ -103,8 +114,8 @@ fun DetectionOverlay(
 
                 // 3. Draw Subpixel ChArUco Corners (Cyan Dots with Dark Border)
                 detectionResult.cornerCoordinates.forEach { corner ->
-                    val cx = corner.x * scaleX
-                    val cy = corner.y * scaleY
+                    val cx = mapX(corner.x)
+                    val cy = mapY(corner.y)
                     drawCircle(
                         color = Color(0xFF003366),
                         radius = 6.dp.toPx(),
@@ -119,10 +130,10 @@ fun DetectionOverlay(
 
                 // 4. Draw 3D Pose Axes (X=Red, Y=Green, Z=Blue)
                 detectionResult.boardAxes?.let { axes ->
-                    val origin = Offset(axes.origin.x * scaleX, axes.origin.y * scaleY)
-                    val xEnd = Offset(axes.xAxisEnd.x * scaleX, axes.xAxisEnd.y * scaleY)
-                    val yEnd = Offset(axes.yAxisEnd.x * scaleX, axes.yAxisEnd.y * scaleY)
-                    val zEnd = Offset(axes.zAxisEnd.x * scaleX, axes.zAxisEnd.y * scaleY)
+                    val origin = Offset(mapX(axes.origin.x), mapY(axes.origin.y))
+                    val xEnd = Offset(mapX(axes.xAxisEnd.x), mapY(axes.xAxisEnd.y))
+                    val yEnd = Offset(mapX(axes.yAxisEnd.x), mapY(axes.yAxisEnd.y))
+                    val zEnd = Offset(mapX(axes.zAxisEnd.x), mapY(axes.zAxisEnd.y))
 
                     // Origin Dot
                     drawCircle(color = Color.White, radius = 5.dp.toPx(), center = origin)

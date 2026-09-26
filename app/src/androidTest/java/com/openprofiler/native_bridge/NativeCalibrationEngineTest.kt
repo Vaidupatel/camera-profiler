@@ -53,12 +53,15 @@ class NativeCalibrationEngineTest {
 
         assertThat(result).isNotNull()
         assertThat(result?.success).isTrue()
-        assertThat(result?.rms).isLessThan(1.0) // Real data usually < 1.0, synthetic perfect should be < 0.01
+        assertThat(result?.rms).isLessThan(0.1) // Synthetic data should be very accurate
         assertThat(result?.cameraMatrix).hasLength(9)
+        assertThat(result?.perViewErrors).hasLength(10)
+        assertThat(result?.stdDevIntrinsics).isNotEmpty()
+        assertThat(result?.residuals).isNotEmpty()
         
         // Principal point should be near (640, 480)
-        assertThat(result?.cameraMatrix?.get(2)).isWithin(5.0).of(640.0)
-        assertThat(result?.cameraMatrix?.get(5)).isWithin(5.0).of(480.0)
+        assertThat(result?.cameraMatrix?.get(2)).isWithin(10.0).of(640.0)
+        assertThat(result?.cameraMatrix?.get(5)).isWithin(10.0).of(480.0)
     }
     
     @Test

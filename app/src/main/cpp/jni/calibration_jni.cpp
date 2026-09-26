@@ -85,7 +85,7 @@ Java_com_openprofiler_native_1bridge_NativeCalibrationEngine_nativeCalibrate(
         return nullptr;
     }
 
-    jmethodID ctor = env->GetMethodID(resultClass, "<init>", "(D[D[DZ)V");
+    jmethodID ctor = env->GetMethodID(resultClass, "<init>", "(D[D[D[D[D[D[I[DZ)V");
     if (!ctor || clearPendingJniException(env, "GetMethodID(NativeCalibrationResult.<init>)")) {
         return nullptr;
     }
@@ -101,12 +101,47 @@ Java_com_openprofiler_native_1bridge_NativeCalibrationEngine_nativeCalibrate(
         env->SetDoubleArrayRegion(distCoeffsArr, 0, distLen, (jdouble*)solveResult.distCoeffs.data);
     }
 
+    jsize stdIntLen = solveResult.success ? solveResult.stdDevIntrinsics.total() : 0;
+    jdoubleArray stdIntArr = env->NewDoubleArray(stdIntLen);
+    if (solveResult.success && stdIntLen > 0) {
+        env->SetDoubleArrayRegion(stdIntArr, 0, stdIntLen, (jdouble*)solveResult.stdDevIntrinsics.data);
+    }
+
+    jsize stdExtLen = solveResult.success ? solveResult.stdDevExtrinsics.total() : 0;
+    jdoubleArray stdExtArr = env->NewDoubleArray(stdExtLen);
+    if (solveResult.success && stdExtLen > 0) {
+        env->SetDoubleArrayRegion(stdExtArr, 0, stdExtLen, (jdouble*)solveResult.stdDevExtrinsics.data);
+    }
+
+    jsize perViewLen = solveResult.success ? solveResult.perViewErrors.size() : 0;
+    jdoubleArray perViewArr = env->NewDoubleArray(perViewLen);
+    if (solveResult.success && perViewLen > 0) {
+        env->SetDoubleArrayRegion(perViewArr, 0, perViewLen, solveResult.perViewErrors.data());
+    }
+
+    jsize rejectedLen = solveResult.success ? solveResult.rejectedFrames.size() : 0;
+    jintArray rejectedArr = env->NewIntArray(rejectedLen);
+    if (solveResult.success && rejectedLen > 0) {
+        env->SetIntArrayRegion(rejectedArr, 0, rejectedLen, (jint*)solveResult.rejectedFrames.data());
+    }
+
+    jsize residualLen = solveResult.success ? solveResult.residuals.size() : 0;
+    jdoubleArray residualArr = env->NewDoubleArray(residualLen);
+    if (solveResult.success && residualLen > 0) {
+        env->SetDoubleArrayRegion(residualArr, 0, residualLen, solveResult.residuals.data());
+    }
+
     jobject obj = env->NewObject(
         resultClass,
         ctor,
         solveResult.rms,
         cameraMatrixArr,
         distCoeffsArr,
+        stdIntArr,
+        stdExtArr,
+        perViewArr,
+        rejectedArr,
+        residualArr,
         static_cast<jboolean>(solveResult.success ? JNI_TRUE : JNI_FALSE)
     );
 

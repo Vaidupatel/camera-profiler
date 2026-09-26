@@ -4,12 +4,6 @@ import kotlinx.serialization.Serializable
 
 /**
  * Result of a camera calibration operation.
- *
- * @property rms Root mean square reprojection error.
- * @property cameraMatrix 3x3 camera intrinsic matrix (row-major).
- * @property distortionCoefficients Distortion coefficients.
- * @property imageCount Number of images used for calibration.
- * @property success Whether the calibration was successful.
  */
 @Serializable
 data class CalibrationResult(
@@ -18,4 +12,11 @@ data class CalibrationResult(
     val distortionCoefficients: List<Double> = emptyList(),
     val imageCount: Int = 0,
     val success: Boolean = false,
+    val perViewErrors: List<Double> = emptyList(),
+    val rejectedFrames: List<Int> = emptyList(),
+    val residuals: List<Double> = emptyList(),
+    val statistics: CalibrationStatistics? = null,
+    val uncertainty: CalibrationUncertainty? = null,
+    val dataset: CalibrationDataset? = null,
+    val timestamp: Long = System.currentTimeMillis()
 )

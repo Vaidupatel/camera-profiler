@@ -1,5 +1,7 @@
 package com.openprofiler.domain.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Rollup of a frame quality evaluation.
  *
@@ -10,6 +12,7 @@ package com.openprofiler.domain.model
  * @property failCount Number of FAIL metrics.
  * @property primaryRejectReason First FAIL reason, or null when accepted.
  */
+@Serializable
 data class QualitySummary(
     val isAccepted: Boolean,
     val overallScore: Double,

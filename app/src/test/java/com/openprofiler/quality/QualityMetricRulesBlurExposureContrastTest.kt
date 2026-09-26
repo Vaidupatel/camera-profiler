@@ -50,7 +50,7 @@ class QualityMetricRulesBlurExposureContrastTest {
             t = thresholds
         )
         assertThat(m.status).isEqualTo(QualityMetricStatus.FAIL)
-        assertThat(m.reason).contains("Underexposed")
+        assertThat(m.reason).contains("underexposed")
         assertThat(m.secondaryValues["underexposed"]).isEqualTo(1.0)
     }
 
@@ -63,7 +63,7 @@ class QualityMetricRulesBlurExposureContrastTest {
             t = thresholds
         )
         assertThat(m.status).isEqualTo(QualityMetricStatus.FAIL)
-        assertThat(m.reason).contains("Overexposed")
+        assertThat(m.reason).contains("overexposed")
     }
 
     @Test
